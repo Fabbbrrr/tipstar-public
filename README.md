@@ -6,11 +6,16 @@ public repo — the full source stays private in the `tipstar` repo).
 
 ## What's here
 
-| Path | What it is |
-|---|---|
-| `index.html` | The live dashboard: current tips, settled results, headline stats, drift gate, and a 14-day walk-forward backtest. |
+A small navigatable site — every page has the same top nav bar linking to all
+the others:
 
-More static reports will be dropped here as they're generated.
+| Page | What it is |
+|---|---|
+| [`index.html`](https://fabbbrrr.github.io/tipstar-public/) | The live dashboard: current tips, settled results, headline stats, drift gate, and a 14-day walk-forward backtest. |
+| [`review.html`](https://fabbbrrr.github.io/tipstar-public/review.html) | **Model vs market** — a fresh prequential (no-lookahead) backtest on the most recent settled date, with the full research grounding and sources. |
+| [`model.html`](https://fabbbrrr.github.io/tipstar-public/model.html) | How the model works: conditional-logit scoring, feature list, selection rules, and the walk-forward audit. |
+| [`data.html`](https://fabbbrrr.github.io/tipstar-public/data.html) | The data contract: the exact schema the pipeline expects from a bookmaker feed. |
+| [`gaps.html`](https://fabbbrrr.github.io/tipstar-public/gaps.html) | What this repo deliberately does **not** do, and the open limitations. |
 
 ## How it updates
 
@@ -18,10 +23,10 @@ This repo is **not edited by hand.** The private `tipstar` project runs a nightl
 scheduled job that:
 
 1. settles yesterday's tips against the actual results,
-2. regenerates the dashboard HTML,
-3. copies it to `index.html` here and pushes.
+2. rebuilds the whole site (dashboard + review + docs pages),
+3. pushes every page here.
 
-GitHub Pages then redeploys automatically. So this page stays current on its
+GitHub Pages then redeploys automatically. So the site stays current on its
 own — no manual steps.
 
 ## About tipstar
