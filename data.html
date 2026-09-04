@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang='en'><head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<title>Data contract · tipstar</title><style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#e6edf3;
+--muted:#8b949e;--accent:#58a6ff;--pos:#3fb950;--neg:#f85149;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+font:15px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+nav{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;align-items:center;
+gap:4px;padding:10px 16px;background:#010409;border-bottom:1px solid var(--border);}
+nav .brand{font-weight:700;color:var(--text);margin-right:12px;font-size:15px;}
+nav .brand b{color:var(--accent)}
+nav a{color:var(--muted);text-decoration:none;padding:6px 11px;border-radius:6px;
+font-size:14px;}
+nav a:hover{background:var(--card);color:var(--text);}
+nav a.active{background:var(--card);color:var(--accent);font-weight:600;}
+main{max-width:960px;margin:0 auto;padding:20px 16px 60px;}
+h1{font-size:24px;margin:14px 0 4px}
+h2{font-size:19px;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+h3{font-size:16px;margin:18px 0 8px}
+p{margin:10px 0}
+ul,ol{padding-left:22px;margin:10px 0}
+li{margin:4px 0}
+a{color:var(--accent)}
+code{background:#1c2128;border:1px solid var(--border);border-radius:4px;
+padding:1px 5px;font-size:13px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;}
+pre{background:#010409;border:1px solid var(--border);border-radius:8px;
+padding:12px 14px;overflow:auto;margin:12px 0;}
+pre code{background:none;border:none;padding:0;font-size:13px;line-height:1.5;}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;}
+th,td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top;}
+th{background:var(--card);}
+tr:nth-child(even) td{background:#11151c;}
+hr{border:none;border-top:1px solid var(--border);margin:22px 0;}
+.subtitle{color:var(--muted);font-size:13px;margin-top:2px}
+footer{max-width:960px;margin:0 auto;padding:16px;color:var(--muted);
+font-size:12px;border-top:1px solid var(--border);}
+</style></head>
+<body>
+<nav><span class='brand'><b>tipstar</b> · greyhounds</span><a href='index.html'>Dashboard</a><a href='review.html'>Model vs market</a><a href='model.html'>Model</a><a href='data.html' class='active'>Data contract</a><a href='gaps.html'>Gaps / limits</a><span style='margin-left:auto;color:#484f58;font-size:12px'>2026-09-04 12:12</span></nav>
+<main>
+<p>This is the schema <code>tipstar.features.build_race</code>, <code>tipstar.trainers</code>, and <code>tipstar.audit</code> expect. Nothing in <code>tipstar/</code> cares where the data came from - your <code>DataSource</code> implementation (see <code>tipstar/datasource.py</code>) is responsible for producing exactly this shape from whatever real feed you point it at. <code>tipstar/mock_datasource.py</code> is a fully worked example that satisfies this contract with synthetic data.</p>
+<p>Assumed scope: AUS-style greyhound racing, fields of 4-8 runners.</p>
+<h2><code>DataSource.meetings(date) -&amp;gt; list[Meeting]</code></h2>
+<pre><code class=lang-jsonc>[
+  {
+    &quot;name&quot;: &quot;Track Name&quot;,
+    &quot;state&quot;: &quot;NSW&quot;,
+    &quot;races&quot;: [
+      {&quot;id&quot;: &quot;opaque-race-id&quot;, &quot;start_time&quot;: &quot;2026-09-03T19:45:00&quot;}
+    ]
+  }
+]</code></pre>
+<h2><code>DataSource.event(race_id) -&amp;gt; RaceCard</code></h2>
+<pre><code class=lang-jsonc>{
+  &quot;race&quot;: {
+    &quot;event_id&quot;: &quot;opaque-race-id&quot;,
+    &quot;race_number&quot;: 4,
+    &quot;display_meeting_name&quot;: &quot;Track Name&quot;,
+    &quot;distance&quot;: 400,
+    &quot;state&quot;: &quot;NSW&quot;,
+    &quot;advertised_start&quot;: 1798000000.0,      // unix seconds
+    &quot;description&quot;: &quot;Grade 5&quot;,
+    &quot;tips&quot;: [&quot;entrant-id-of-top-tip&quot;, &quot;...&quot;]  // ranked, optional, [] if unavailable
+  },
+  &quot;runners&quot;: [
+    {
+      &quot;entrant_id&quot;: &quot;opaque-runner-id&quot;,
+      &quot;name&quot;: &quot;Runner Name&quot;,
+      &quot;runner_number&quot;: 3,
+      &quot;barrier&quot;: 3,
+      &quot;is_scratched&quot;: false,
+      &quot;primary_market&quot;: true,
+      &quot;trainer_name&quot;: &quot;Trainer/Kennel Name&quot;,
+      &quot;age&quot;: 2.6,
+      &quot;best_time&quot;: 29.87,
+      &quot;prize_money&quot;: 12500,
+      &quot;last_twenty_starts&quot;: &quot;1x213F5...&quot;,   // oldest -&gt; newest
+      &quot;speedmap&quot;: {&quot;settling_lengths&quot;: 0.5, &quot;label&quot;: &quot;Midfield&quot;},
+      &quot;odds&quot;: {&quot;fixed_win&quot;: 4.20, &quot;fixed_place&quot;: 1.65},
+      &quot;flucs_with_timestamp&quot;: {
+        &quot;open&quot;: {&quot;fluc&quot;: 4.80},
+        &quot;last_six&quot;: [
+          {&quot;fluc&quot;: 4.80, &quot;timestamp&quot;: &quot;2026-09-03T18:00:00&quot;},
+          {&quot;fluc&quot;: 4.20, &quot;timestamp&quot;: &quot;2026-09-03T19:40:00&quot;}
+        ]
+      }
+    }
+  ],
+  &quot;results&quot;: [                              // only present once the race is settled
+    {&quot;entrant_id&quot;: &quot;opaque-runner-id&quot;, &quot;position&quot;: 1}
+  ]
+}</code></pre>
+<h2><code>DataSource.historical_results(date_from, date_to) -&amp;gt; Iterable[RaceCard]</code></h2>
+<p>Same <code>RaceCard</code> shape as <code>event()</code>, but only for <strong>settled</strong> races (i.e. <code>results</code> populated) in the inclusive date range. Used by <code>tipstar.trainers.refresh_trainer_strike_rates</code> and <code>tipstar.audit</code>.</p>
+<h2>Notes</h2>
+<ul><li><code>last_twenty_starts</code> characters: digits are finishing position, <code>x</code>/<code>f</code>/<code>t</code>/<code>s</code></li></ul>
+<p>(case-insensitive) are non-finishes (scratched/fell/etc). Anything else is ignored.</p>
+<ul><li><code>flucs_with_timestamp.last_six[].timestamp</code> needs to be ISO-8601</li></ul>
+<p>parseable; <code>tipstar.features.snapshot_odds</code> uses it to rewind a settled card to how it looked before the jump, for lookahead-free auditing.</p>
+<ul><li>Prices are decimal odds, not fractional or American.</li><li>Everything is deliberately vendor-neutral. If your real provider's</li></ul>
+<p>field names differ, translate them into this shape inside your own <code>DataSource</code> class rather than changing <code>tipstar/features.py</code>.</p>
+</main>
+<footer>Model outputs are relative-value estimates from an unvalidated model — not outcome predictions and not financial or betting advice.</footer>
+</body></html>

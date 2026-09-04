@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang='en'><head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<title>Model vs market · tipstar</title><style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#e6edf3;
+--muted:#8b949e;--accent:#58a6ff;--pos:#3fb950;--neg:#f85149;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+font:15px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+nav{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;align-items:center;
+gap:4px;padding:10px 16px;background:#010409;border-bottom:1px solid var(--border);}
+nav .brand{font-weight:700;color:var(--text);margin-right:12px;font-size:15px;}
+nav .brand b{color:var(--accent)}
+nav a{color:var(--muted);text-decoration:none;padding:6px 11px;border-radius:6px;
+font-size:14px;}
+nav a:hover{background:var(--card);color:var(--text);}
+nav a.active{background:var(--card);color:var(--accent);font-weight:600;}
+main{max-width:960px;margin:0 auto;padding:20px 16px 60px;}
+h1{font-size:24px;margin:14px 0 4px}
+h2{font-size:19px;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+h3{font-size:16px;margin:18px 0 8px}
+p{margin:10px 0}
+ul,ol{padding-left:22px;margin:10px 0}
+li{margin:4px 0}
+a{color:var(--accent)}
+code{background:#1c2128;border:1px solid var(--border);border-radius:4px;
+padding:1px 5px;font-size:13px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;}
+pre{background:#010409;border:1px solid var(--border);border-radius:8px;
+padding:12px 14px;overflow:auto;margin:12px 0;}
+pre code{background:none;border:none;padding:0;font-size:13px;line-height:1.5;}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;}
+th,td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top;}
+th{background:var(--card);}
+tr:nth-child(even) td{background:#11151c;}
+hr{border:none;border-top:1px solid var(--border);margin:22px 0;}
+.subtitle{color:var(--muted);font-size:13px;margin-top:2px}
+footer{max-width:960px;margin:0 auto;padding:16px;color:var(--muted);
+font-size:12px;border-top:1px solid var(--border);}
+</style></head>
+<body>
+<nav><span class='brand'><b>tipstar</b> · greyhounds</span><a href='index.html'>Dashboard</a><a href='review.html' class='active'>Model vs market</a><a href='model.html'>Model</a><a href='data.html'>Data contract</a><a href='gaps.html'>Gaps / limits</a><span style='margin-left:auto;color:#484f58;font-size:12px'>2026-09-04 12:12</span></nav>
+<main>
+<div class='subtitle'>Prequential backtest on the latest settled date with enough history: <b>2026-09-03</b>. No lookahead — the model never saw that date.</div><p>Prequential backtest: trained on 2026-08-20..2026-09-02 (1595 races), scored 388 settled races on 2026-09-03 (avg field 6.72). No lookahead - the model never saw the eval date.</p>
+<h2>What % of winners could it have predicted?</h2>
+<table>
+<tr><th>Pick</th><th>Model</th><th>Market favourite</th><th>Random base rate</th></tr>
+<tr><td>Top-1 hit the winner</td><td><strong>42.5%</strong></td><td>44.3%</td><td>14.9%</td></tr>
+<tr><td>Top-3 covered the winner</td><td>80.7%</td><td>81.2%</td><td>44.6%</td></tr>
+</table>
+<p>Interpretation: the model's top pick won <strong>43%</strong> of the time - roughly <strong>3x</strong> better than picking at random (15%), and essentially <strong>in line with just following the market favourite</strong> (44%).</p>
+<h2>Model vs market (calibration)</h2>
+<table>
+<tr><th>Score (lower = better)</th><th>Model</th><th>Market</th></tr>
+<tr><td>Brier score</td><td>0.7128</td><td>0.7082</td></tr>
+<tr><td>Log-loss</td><td>2.3146</td><td>2.3035</td></tr>
+<tr><td>Mean prob assigned to the actual winner</td><td>0.2797</td><td>0.2757</td></tr>
+</table>
+<p>The two are very close. The market has the better (lower) Brier score - meaning the market's own de-vigged probabilities are, on this data, marginally better calibrated than the model's.</p>
+<p>_Caveat: these per-race Brier/log-loss values are only comparable to each other (same formula, same races). They are NOT comparable to the per-runner Brier values quoted in other studies, which use a different denominator. The apples-to-apples benchmark here is the model vs the de-vigged market on the same set of races - and that gap is within noise._</p>
+<h2>The actual tips (edge filter)</h2>
+<table>
+<tr><th>#</th><th>Dog (box)</th><th>Model %</th><th>Market %</th><th>Edge</th><th>Price</th><th>Result</th></tr>
+<tr><td>1</td><td>Zipping Jamal (b7)</td><td>41%</td><td>11%</td><td>3.75x</td><td>$6.8</td><td>WON</td></tr>
+<tr><td>2</td><td>Victory Barry (b4)</td><td>68%</td><td>19%</td><td>3.57x</td><td>$4.7</td><td>lost</td></tr>
+<tr><td>3</td><td>Otto Rose (b7)</td><td>44%</td><td>13%</td><td>3.38x</td><td>$6.4</td><td>lost</td></tr>
+<tr><td>4</td><td>Major Ace (b8)</td><td>50%</td><td>15%</td><td>3.29x</td><td>$5.8</td><td>lost</td></tr>
+<tr><td>5</td><td>Paw Treacle (b7)</td><td>48%</td><td>15%</td><td>3.28x</td><td>$5.5</td><td>lost</td></tr>
+<tr><td>6</td><td>Bronte Blue Opal (b8)</td><td>27%</td><td>9%</td><td>3.07x</td><td>$8.5</td><td>lost</td></tr>
+<tr><td>7</td><td>Jazz Band (b8)</td><td>43%</td><td>12%</td><td>3.71x</td><td>$6.5</td><td>lost</td></tr>
+<tr><td>8</td><td>Take A Jaguar (b8)</td><td>38%</td><td>11%</td><td>3.60x</td><td>$7.0</td><td>lost</td></tr>
+<tr><td>9</td><td>Summer's Scrub (b6)</td><td>57%</td><td>17%</td><td>3.40x</td><td>$4.4</td><td>lost</td></tr>
+<tr><td>10</td><td>Terra Bella (b7)</td><td>41%</td><td>15%</td><td>2.76x</td><td>$5.0</td><td>lost</td></tr>
+<tr><td>11</td><td>Tea Rose (b1)</td><td>56%</td><td>23%</td><td>2.41x</td><td>$3.2</td><td>lost</td></tr>
+<tr><td>12</td><td>Atomic Tiger (b4)</td><td>30%</td><td>15%</td><td>2.01x</td><td>$5.0</td><td>lost</td></tr>
+</table>
+<p><strong>1/12 of the recorded tips won.</strong> These are the high-'edge' selections - where the model strongly disagrees with the market. That is the riskiest place to bet: the model's biggest disagreements with the market are usually the market being right, so a low hit rate on the contrarians is the realistic picture, not a fluke.</p>
+<h2>What the research says (grounding these numbers)</h2>
+<ul><li><strong>Base rate is set by field size.</strong> A random pick wins 1/N; our average field was 6.7 dogs, so a random top pick wins ~15%. The market favourite concentrates real win probability - it won 44% here (published AU figures cluster around 30-35%, higher in feature/short fields).</li><li><strong>The market is very efficient in Australia.</strong> The ECU study of AU betting markets ('Late Money and Betting Market Efficiency: Evidence from Australia', 2019) finds the closing market is extremely hard to beat, and that 'late money' keeps repricing right up to the jump. The standard test of a betting system is not hit-rate but <strong>Closing Line Value</strong> - does it pick prices that end up <em>better than</em> the closing market? A model that cannot beat the closing line is not profitable over time, however often its top pick wins.</li><li><strong>Bookmakers bake in an overround.</strong> AU win markets are priced at roughly 112-130% (tighter at TAB/Sportsbet for feature races, looser at provincial mid-week meetings). We de-vig by dividing each implied probability by that sum - which is why p_mkt is the market's <em>fair</em> estimate, and why even a perfect model has to clear that margin to turn a profit.</li><li><strong>The favourite-longshot bias is REVERSED in greyhounds.</strong> In horse racing, bettors over-bet longshots and under-bet favourites (Snowberg &amp; Wolfers, 2010, show this is driven by misperception, not risk-love, and - critically - it does NOT create a profit opportunity for unbiased bettors). But a peer-reviewed greyhound study (Gulati &amp; Shetty, 2007) found the <strong>opposite</strong>: bettors <em>over-bet favourites</em> and <em>under-bet longshots</em>, so the market tends to price the favourite slightly too cheap. That is exactly the direction this system's 'edge' tips bet AGAINST (the model underweights the favourite and finds 'value' in mid/long prices) - i.e. the wrong side of the bias in this sport.</li><li><strong>Handicappers explain little beyond the market.</strong> Benter (2008), the classic computer-handicapping study, found the public's market estimate alone already carries a pseudo-R-squared of ~0.12, and a strong fundamental model added only ~0.017 to that - a tiny increment that was nonetheless profitable over ~5 years with fractional Kelly. The point: the market price is the dominant predictor, and a model whose dominant feature <em>is</em> the market price should be expected to sit at, not above, the market - which is precisely what we measured (model Brier 0.713 vs market 0.708).</li><li><strong>The closest published analogue matches this result.</strong> A recent HKJC study built a market-aware logistic model (market price as a feature); it beat the market-free version on log-loss and top-pick win rate, yet betting <em>every</em> top pick still produced <strong>negative ROI</strong>. The lesson: a marginally better proper score is not profit - the edge must come from <em>selective</em> value, betting only where your probability diverges from a sharp close by more than the takeout.</li><li><strong>If an edge ever appears, stake with fractional Kelly.</strong> Kelly sizing (fraction = edge/price) maximises long-run growth but is very high-variance; practice is to bet 0.25-0.5x Kelly. None of this is relevant until a real, audited edge exists.</li></ul>
+<h2>What this means for the tips</h2>
+<ul><li>Each tip's 'likelihood' is the model's probability for that dog (the 'Model %' column above). Those numbers are honest relative-value estimates, not certainties: a 68% pick can still lose when it is the model's over-confident outlier.</li><li>The 12 tips are the high-'edge' contrarians (the model is roughly 3x the market on each). The research and the data agree these are the riskiest bets the system makes - the market is usually right there. 1/12 won here, which is within normal variance but is the realistic picture, not an anomaly.</li></ul>
+<h2>Bottom line</h2>
+<ul><li>The pipeline <strong>works as intended</strong>: it trains, scores, and settles reproducibly on real data.</li><li>On this sample the model is <strong>roughly as good as the market, and the market is a little better</strong>. It adds little beyond the de-vigged market price, which is the honest expectation for a model whose main feature <em>is</em> the market price.</li><li>The <strong>contrarian 'edge' tips do not reliably pay</strong> - a model that over-trusts its disagreement with the market is the classic way to lose.</li><li>This is one day / ~388 races. It is directional, not a verdict; a real edge claim needs many more settled races and a walk-forward audit (see GAPS.md).</li></ul>
+<h2>Sources (research grounding)</h2>
+<ul><li><strong>AU market efficiency</strong> - Late Money and Betting Market Efficiency: Evidence from Australia (ECU, 2019): <a href="https://economics.ecu.edu/wp-content/pv-uploads/sites/165/2019/07/ecu1310.pdf">https://economics.ecu.edu/wp-content/pv-uploads/sites/165/2019/07/ecu1310.pdf</a></li><li><strong>Greyhound bias reversal</strong> - Gulati &amp; Shetty (2007), 'Favourite-longshot bias in greyhound racing' (peer-reviewed, 3 tracks): <a href="https://ideas.repec.org/a/spr/jecfin/v31y2007i1p49-58.html">https://ideas.repec.org/a/spr/jecfin/v31y2007i1p49-58.html</a></li><li><strong>Horse-racing FLB (the contrast)</strong> - Snowberg &amp; Wolfers (2010), NBER WP 15923 (bias = misperception, no arbitrage): <a href="https://www.nber.org/system/files/working_papers/w15923/w15923.pdf">https://www.nber.org/system/files/working_papers/w15923/w15923.pdf</a></li><li><strong>Canonical model</strong> - Bolton &amp; Chapman (1986), Management Science (multinomial logit; market price the dominant feature): <a href="https://www.jstor.org/stable/2631667">https://www.jstor.org/stable/2631667</a></li><li><strong>Realistic edge size</strong> - Benter (2008), computer-based handicapping (pseudo-R2 ~0.12 market, +~0.017 model): <a href="https://datagolf.com/static/blogs/benter_paper.pdf">https://datagolf.com/static/blogs/benter_paper.pdf</a></li><li><strong>Closest analogue</strong> - HKJC market-aware ML study (beats market-free, still negative ROI on top picks): <a href="https://github.com/jerrydaphantom/hkjc-ml-research/blob/main/README.md">https://github.com/jerrydaphantom/hkjc-ml-research/blob/main/README.md</a></li><li><strong>Closing Line Value</strong> - <a href="https://unabated.com/post/getting-precise-about-closing-line-value">https://unabated.com/post/getting-precise-about-closing-line-value</a></li><li><strong>AU overround / base rates / box bias</strong> (practitioner, approximate): <a href="https://degentopro.com/blog/how-to-find-value-bets-greyhounds">https://degentopro.com/blog/how-to-find-value-bets-greyhounds</a> and <a href="https://prdextblog01.bluebet.com.au/odds/greyhounds">https://prdextblog01.bluebet.com.au/odds/greyhounds</a></li><li><strong>Calibration (Brier / ECE / log-loss)</strong>: <a href="https://agentbets.ai/guides/calibration-model-evaluation-agents/">https://agentbets.ai/guides/calibration-model-evaluation-agents/</a> and <a href="https://datafield.dev/sports-betting-textbook/part-06/chapter-30">https://datafield.dev/sports-betting-textbook/part-06/chapter-30</a></li></ul>
+<p><em>Compiled from a cited research brief (~18 sources). AU-specific base rates are flagged [approximate] where no single authoritative figure is published.</em></p>
+<p><em>Model outputs are relative-value estimates from an unvalidated model, not outcome predictions and not financial or betting advice.</em></p>
+</main>
+<footer>Model outputs are relative-value estimates from an unvalidated model — not outcome predictions and not financial or betting advice.</footer>
+</body></html>

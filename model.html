@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang='en'><head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<title>Model · tipstar</title><style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#e6edf3;
+--muted:#8b949e;--accent:#58a6ff;--pos:#3fb950;--neg:#f85149;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+font:15px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+nav{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;align-items:center;
+gap:4px;padding:10px 16px;background:#010409;border-bottom:1px solid var(--border);}
+nav .brand{font-weight:700;color:var(--text);margin-right:12px;font-size:15px;}
+nav .brand b{color:var(--accent)}
+nav a{color:var(--muted);text-decoration:none;padding:6px 11px;border-radius:6px;
+font-size:14px;}
+nav a:hover{background:var(--card);color:var(--text);}
+nav a.active{background:var(--card);color:var(--accent);font-weight:600;}
+main{max-width:960px;margin:0 auto;padding:20px 16px 60px;}
+h1{font-size:24px;margin:14px 0 4px}
+h2{font-size:19px;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+h3{font-size:16px;margin:18px 0 8px}
+p{margin:10px 0}
+ul,ol{padding-left:22px;margin:10px 0}
+li{margin:4px 0}
+a{color:var(--accent)}
+code{background:#1c2128;border:1px solid var(--border);border-radius:4px;
+padding:1px 5px;font-size:13px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;}
+pre{background:#010409;border:1px solid var(--border);border-radius:8px;
+padding:12px 14px;overflow:auto;margin:12px 0;}
+pre code{background:none;border:none;padding:0;font-size:13px;line-height:1.5;}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;}
+th,td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top;}
+th{background:var(--card);}
+tr:nth-child(even) td{background:#11151c;}
+hr{border:none;border-top:1px solid var(--border);margin:22px 0;}
+.subtitle{color:var(--muted);font-size:13px;margin-top:2px}
+footer{max-width:960px;margin:0 auto;padding:16px;color:var(--muted);
+font-size:12px;border-top:1px solid var(--border);}
+</style></head>
+<body>
+<nav><span class='brand'><b>tipstar</b> · greyhounds</span><a href='index.html'>Dashboard</a><a href='review.html'>Model vs market</a><a href='model.html' class='active'>Model</a><a href='data.html'>Data contract</a><a href='gaps.html'>Gaps / limits</a><span style='margin-left:auto;color:#484f58;font-size:12px'>2026-09-04 12:12</span></nav>
+<main>
+<h2>Scoring: conditional logit (softmax over runners)</h2>
+<p>For each race, every runner gets a linear score <code>u_i = coef . features_i</code>. Win probabilities are the softmax of those scores across the runners in that race: <code>p_model_i = exp(u_i) / sum(exp(u_j))</code>. This is a standard discrete-choice / conditional-logit setup - it guarantees the modelled probabilities sum to 1 within a race, unlike scoring each runner in isolation.</p>
+<p><code>edge_i = p_model_i / p_mkt_i</code>, where <code>p_mkt_i</code> is the field's overround-normalised implied probability from <code>fixed_win</code> prices (<code>1/price</code>, renormalised to sum to 1 across the race). An edge of 1.30 means the model thinks a runner is 30% more likely to win than the market's own probabilities imply.</p>
+<h2>Features (<code>tipstar/features.py::FEATNAMES</code>)</h2>
+<table>
+<tr><th>feature</th><th>meaning</th></tr>
+<tr><td><code>lp_mkt</code>, <code>lp_mkt_sq</code></td><td>log market probability, and its square (lets the model bend the market curve rather than just reproduce it)</td></tr>
+<tr><td><code>drift</code></td><td><code>log(open_price / current_price)</code> - positive when the price has shortened since open</td></tr>
+<tr><td><code>bt_z</code></td><td>z-scored best recorded time within the race</td></tr>
+<tr><td><code>settle_z</code></td><td>z-scored early settling position</td></tr>
+<tr><td><code>lead_inside</code></td><td><code>-settle_z</code> interacted with an inside-barrier (1-3) flag</td></tr>
+<tr><td><code>form_win</code>, <code>form_place</code></td><td>exponentially-weighted recent win/place rate (<code>features.parse_form</code>)</td></tr>
+<tr><td><code>log_starts</code></td><td><code>log1p(n_starts)</code> - more starts, more confidence in the form read</td></tr>
+<tr><td><code>tip_top1</code>, <code>tip_top3</code></td><td>1 if this runner is the #1 / top-3 in whatever consensus-tip list your feed supplies</td></tr>
+<tr><td><code>pm_z</code></td><td>z-scored <code>log1p(prize_money)</code></td></tr>
+<tr><td><code>age_z</code></td><td>z-scored age</td></tr>
+<tr><td><code>trainer_sr</code></td><td>shrunk trainer/kennel win-rate delta from <code>tipstar.trainers</code></td></tr>
+<tr><td><code>box1</code>..<code>box8</code></td><td>one-hot barrier draw</td></tr>
+</table>
+<h2>Fitting coefficients: <code>tipstar.model.train()</code></h2>
+<p>Plain-Python gradient ascent on the conditional-logit log-likelihood - no numpy, no external deps. Feed it <code>(feats, winner_index)</code> pairs built from your own settled historical races (<code>features.build_race</code> on a <code>RaceCard</code> with <code>results</code> populated tells you which runner won). Comes with light L2 shrinkage (<code>l2=1.0</code> by default) since some features (barrier dummies especially) are sparse.</p>
+<p><code>model.EXAMPLE_COEF</code> is <strong>not</strong> a fitted model - see <code>GAPS.md</code>. It sets every weight to 0 except <code>lp_mkt=1.0</code>, which makes <code>p_model</code> reproduce <code>p_mkt</code> exactly (softmax of <code>log(p_mkt)</code>, renormalised, is just <code>p_mkt</code> again), so <code>edge</code> is always exactly <code>1.0</code>. It exists purely so <code>--mock --dry</code> runs without crashing.</p>
+<h2>Selection (<code>tipstar/selection.py</code>)</h2>
+<ol><li><strong><code>qualify</code></strong>: keep only each race's single top-rated runner</li></ol>
+<p>(<code>rank == 1</code>), only if <code>edge &amp;gt;= edge_min</code> and the price falls in <code>[price_min, price_max]</code>. Defaults: <code>edge_min=1.30</code>, <code>price_min=3.00</code>, <code>price_max=12.00</code> - narrow favourites and long-shots are excluded on purpose, since both are where a model built on ~20 hand-picked features is least trustworthy.</p>
+<ol><li><strong><code>diversify</code></strong>: caps how many selections can share a trainer/kennel</li></ol>
+<p>or a track (<code>max_per_trainer=2</code>, <code>max_per_track=2</code> by default), so one noisy signal can't dominate the whole list.</p>
+<ol><li><strong>cap</strong>: at most <code>max_tips</code> (default 6) selections total.</li></ol>
+<h2>Audit (<code>tipstar/audit.py</code>)</h2>
+<p>Re-derives what the pipeline would have tipped on a past date, using a trainer-form table built <strong>only from data before that date</strong> (<code>refresh_trainer_strike_rates</code> over <code>[date - form_days - 7, date - 1]</code>) and race odds rewound to <code>lead_seconds</code> before the advertised jump (<code>features.snapshot_odds</code>), then settles those picks against the real <code>results</code>. This is a standard walk-forward check: reusing today's trainer table to audit last week would leak information the live run could never have had, and would flatter the record.</p>
+<h2>What this is / isn't</h2>
+<p>Everything above produces a <strong>relative-value estimate versus the market</strong>, conditioned on whatever coefficients you trained. It is not a prediction that a given runner will win, it has not been validated against real outcomes by this repo, and 32%+ book overround (typical for fixed-odds racing markets) means flat-staking any price band is a losing game before you even get to whether the model is any good. See <code>GAPS.md</code>.</p>
+</main>
+<footer>Model outputs are relative-value estimates from an unvalidated model — not outcome predictions and not financial or betting advice.</footer>
+</body></html>

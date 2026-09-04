@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang='en'><head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<title>Gaps / limits · tipstar</title><style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#e6edf3;
+--muted:#8b949e;--accent:#58a6ff;--pos:#3fb950;--neg:#f85149;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+font:15px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+nav{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;align-items:center;
+gap:4px;padding:10px 16px;background:#010409;border-bottom:1px solid var(--border);}
+nav .brand{font-weight:700;color:var(--text);margin-right:12px;font-size:15px;}
+nav .brand b{color:var(--accent)}
+nav a{color:var(--muted);text-decoration:none;padding:6px 11px;border-radius:6px;
+font-size:14px;}
+nav a:hover{background:var(--card);color:var(--text);}
+nav a.active{background:var(--card);color:var(--accent);font-weight:600;}
+main{max-width:960px;margin:0 auto;padding:20px 16px 60px;}
+h1{font-size:24px;margin:14px 0 4px}
+h2{font-size:19px;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+h3{font-size:16px;margin:18px 0 8px}
+p{margin:10px 0}
+ul,ol{padding-left:22px;margin:10px 0}
+li{margin:4px 0}
+a{color:var(--accent)}
+code{background:#1c2128;border:1px solid var(--border);border-radius:4px;
+padding:1px 5px;font-size:13px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;}
+pre{background:#010409;border:1px solid var(--border);border-radius:8px;
+padding:12px 14px;overflow:auto;margin:12px 0;}
+pre code{background:none;border:none;padding:0;font-size:13px;line-height:1.5;}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;}
+th,td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top;}
+th{background:var(--card);}
+tr:nth-child(even) td{background:#11151c;}
+hr{border:none;border-top:1px solid var(--border);margin:22px 0;}
+.subtitle{color:var(--muted);font-size:13px;margin-top:2px}
+footer{max-width:960px;margin:0 auto;padding:16px;color:var(--muted);
+font-size:12px;border-top:1px solid var(--border);}
+</style></head>
+<body>
+<nav><span class='brand'><b>tipstar</b> · greyhounds</span><a href='index.html'>Dashboard</a><a href='review.html'>Model vs market</a><a href='model.html'>Model</a><a href='data.html'>Data contract</a><a href='gaps.html' class='active'>Gaps / limits</a><span style='margin-left:auto;color:#484f58;font-size:12px'>2026-09-04 12:12</span></nav>
+<main>
+<p>This is a working pipeline for rating AUS-style greyhound races against a value model, with <strong>real Sportsbet and Ladbrokes data adapters</strong> wired in, a <strong>Task Scheduler installer</strong> for hands-off weekly tips + nightly settle, <strong>cross-book price overlay</strong>, and a <strong>concept-drift gate</strong>.</p>
+<p>The following were left out on purpose or are still open:</p>
+<ol><li><strong>No notification channel is configured.</strong> <code>report.send()</code> prints the</li></ol>
+<p>formatted report unless <code>TIPSTAR_WEBHOOK</code> (or <code>--webhook</code>) is set — there is no default URL, Discord server, or audience wired up anywhere. The weekly job will honour <code>TIPSTAR_WEBHOOK</code> if you set it in the environment before running <code>install.bat</code>.</p>
+<ol><li><strong>No legal, licensing, or compliance review.</strong> The data endpoints used</li></ol>
+<p>here are public (no auth), but the bookmakers' terms of service, any data-licensing requirements, and responsible-gambling / advertising rules that might apply to distributing tips in your jurisdiction have NOT been assessed. Confirm all of that independently before pointing this at anything live or sharing its output with anyone else.</p>
+<ol><li><strong>No fitted or validated model out of the box.</strong> <code>model.EXAMPLE_COEF</code> is</li></ol>
+<p>an inert placeholder (see <code>docs/MODEL.md</code>) so <code>--mock --dry</code> runs clean. A real model requires at least ~20 settled races in the training window; <code>install.bat</code> runs a one-time 13-day backfill + train in a detached window the first time you use it, so the model is ready by the time the first nightly job fires. Until then, <code>tips</code> will score on the placeholder.</p>
+<ol><li><strong>Drift gate has a warm-up period.</strong> <code>tipstar.drift</code> compares the model's</li></ol>
+<p>log-loss on the most recent 3 days against a 7-day baseline; with fewer than ~10 usable cards in the recent window it reports <code>insufficient data</code> rather than a ratio. Expect the first two or three weeks of nightly runs to log <code>insufficient data</code> before it starts producing a real ratio and acting on a threshold breach.</p>
+<ol><li><strong>Cross-book overlay only fires on qualifying tips.</strong> The weekly job</li></ol>
+<p>loads the secondary book only to fetch a card for the ~1–6 tips that cleared the promotion gate, matching on advertised start time + runner name overlap (verified live 2026-09-03: Sportsbet + Ladbrokes name and box the same dog identically; the better of the two win prices is what gets recorded). Races that both books price but the model does not tip on are not cross-referenced — that is fine, because those are precisely the tips we are not acting on.</p>
+</main>
+<footer>Model outputs are relative-value estimates from an unvalidated model — not outcome predictions and not financial or betting advice.</footer>
+</body></html>
