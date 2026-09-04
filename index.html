@@ -94,6 +94,7 @@ details.acc-venue>summary .acc-venue-state{color:var(--muted);font-weight:400;fo
 .race-row .rr-link:hover{text-decoration:underline}
 .race-row .rr-dog{font-size:13px;margin:2px 0 0}
 .race-row .rr-dog .muted{font-size:12px}
+.top6-list{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:2px 14px;margin-bottom:10px}
 table.stats-history th,table.stats-history td{padding:6px 8px;border-bottom:1px solid var(--border)}
 table.stats-history th{text-align:right;font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase}
 table.stats-history th:first-child,table.stats-history td:first-child{text-align:left}
@@ -216,13 +217,24 @@ profit per 1-unit stake. See <code>GAPS.md</code> and <code>README.md</code>.
       });
       return keep;
     }
+    function top6Row(t){
+      var d=t.dog;
+      var link=t.url?'<a class="rr-link" href="'+t.url+'" target="_blank" rel="noopener">view race ↗</a>':'';
+      return '<div class="race-row">'+
+        '<div class="rr-head">'+
+        '<span class="rr-race">'+dayLabel(t.date)+'</span>'+
+        '<span class="rr-time">'+esc(t.meeting)+(t.state?' '+esc(t.state):'')+
+        ' R'+(t.raceNo==null?'':t.raceNo)+'</span>'+
+        (t.startTime?'<span class="rr-time">'+esc(t.startTime)+'</span>':'')+
+        link+
+        '</div>'+
+        '<div class="rr-dog">'+esc(d.name)+' '+
+        '<span class="muted">b'+(d.box==null?'':d.box)+' · $'+num(d.price)+
+        ' · '+num(d.edge)+'x edge · '+pct(d.model)+' / '+pct(d.market)+'</span>'+
+        '</div></div>';
+    }
     function build(){
       var view=(mode==='top6')?top6View():TIPS;
-      // group by day
-      var byDay={};
-      view.forEach(function(t){(byDay[t.date]=byDay[t.date]||[]).push(t);});
-      var days=Object.keys(byDay).sort(function(a,b){return a<b?-1:(a>b?1:0);});
-      var html='';
       if(!view.length){
         wrap.innerHTML='<p class="empty">No tips clear the Top 6 bar right now '+
           '(edge ≥ 1.30x, price $3–$12). Switch back to By jump time '+
@@ -230,6 +242,20 @@ profit per 1-unit stake. See <code>GAPS.md</code> and <code>README.md</code>.
         if(countEl){countEl.textContent='0 tips';}
         return;
       }
+      if(mode==='top6'){
+        view.sort(function(a,b){
+          if(a.date!==b.date) return a.date<b.date?-1:1;
+          return (b.dog.edge||0)-(a.dog.edge||0);
+        });
+        wrap.innerHTML='<div class="top6-list">'+view.map(top6Row).join('')+'</div>';
+        if(countEl){countEl.textContent=view.length+' pick'+(view.length!==1?'s':'')+' · best 6 per day';}
+        return;
+      }
+      // group by day
+      var byDay={};
+      view.forEach(function(t){(byDay[t.date]=byDay[t.date]||[]).push(t);});
+      var days=Object.keys(byDay).sort(function(a,b){return a<b?-1:(a>b?1:0);});
+      var html='';
       days.forEach(function(day){
         var list=byDay[day];
         // group by venue (meeting + state)
@@ -264,7 +290,7 @@ profit per 1-unit stake. See <code>GAPS.md</code> and <code>README.md</code>.
           '</summary><div class="acc-body">'+venueHtml+'</div></details>';
       });
       wrap.innerHTML=html;
-      if(countEl){countEl.textContent=view.length+' tips across '+days.length+' day'+(days.length!==1?'s':'')+(mode==='top6'?' · best 6 per day':'');}
+      if(countEl){countEl.textContent=view.length+' tips across '+days.length+' day'+(days.length!==1?'s':'');}
     }
     var modeBtns=document.querySelectorAll('.tips-mode');
     modeBtns.forEach(function(b){b.addEventListener('click',function(){
