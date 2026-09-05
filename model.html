@@ -62,40 +62,132 @@ body{padding-top:56px}
 .tsnav-stamp{margin-left:auto;flex:0 0 auto;color:#545c66;font-size:12px;
   white-space:nowrap;font-variant-numeric:tabular-nums}
 @media (max-width:820px){.tsnav-stamp,.tsnav-brand em{display:none}}
-</style><nav class='tsnav'><div class='tsnav-inner'><a class='tsnav-brand' href='index.html'><span class='tsnav-logo'><svg viewBox='0 0 24 24' fill='currentColor' aria-hidden='true'><ellipse cx='5.6' cy='10.4' rx='2' ry='2.6'/><ellipse cx='10.2' cy='7.6' rx='2.1' ry='2.8'/><ellipse cx='15.4' cy='7.6' rx='2.1' ry='2.8'/><ellipse cx='19.8' cy='10.6' rx='2' ry='2.6'/><path d='M12.7 12c2.9 0 6 2.3 6 5.2 0 2-1.6 3.2-3.6 2.6-1.3-.4-1.9-.8-2.4-.8s-1.1.4-2.4.8c-2 .6-3.6-.6-3.6-2.6C6.7 14.3 9.8 12 12.7 12z'/></svg></span>tipstar<em>greyhounds</em></a><div class='tsnav-links'><a href='index.html'>Dashboard</a><a href='review.html'>Model vs market</a><a href='model.html' class='active'>Model</a><a href='data.html'>Data contract</a><a href='gaps.html'>Gaps / limits</a></div><span class='tsnav-stamp'>2026-09-05 15:14</span></div></nav>
+</style><nav class='tsnav'><div class='tsnav-inner'><a class='tsnav-brand' href='index.html'><span class='tsnav-logo'><svg viewBox='0 0 24 24' fill='currentColor' aria-hidden='true'><ellipse cx='5.6' cy='10.4' rx='2' ry='2.6'/><ellipse cx='10.2' cy='7.6' rx='2.1' ry='2.8'/><ellipse cx='15.4' cy='7.6' rx='2.1' ry='2.8'/><ellipse cx='19.8' cy='10.6' rx='2' ry='2.6'/><path d='M12.7 12c2.9 0 6 2.3 6 5.2 0 2-1.6 3.2-3.6 2.6-1.3-.4-1.9-.8-2.4-.8s-1.1.4-2.4.8c-2 .6-3.6-.6-3.6-2.6C6.7 14.3 9.8 12 12.7 12z'/></svg></span>tipstar<em>greyhounds</em></a><div class='tsnav-links'><a href='index.html'>Dashboard</a><a href='review.html'>Model vs market</a><a href='model.html' class='active'>Model</a><a href='data.html'>Data contract</a><a href='gaps.html'>Gaps / limits</a></div><span class='tsnav-stamp'>2026-09-05 15:42</span></div></nav>
 <main>
-<h2>Scoring: conditional logit (softmax over runners)</h2>
-<p>For each race, every runner gets a linear score <code>u_i = coef . features_i</code>. Win probabilities are the softmax of those scores across the runners in that race: <code>p_model_i = exp(u_i) / sum(exp(u_j))</code>. This is a standard discrete-choice / conditional-logit setup - it guarantees the modelled probabilities sum to 1 within a race, unlike scoring each runner in isolation.</p>
-<p><code>edge_i = p_model_i / p_mkt_i</code>, where <code>p_mkt_i</code> is the field's overround-normalised implied probability from <code>fixed_win</code> prices (<code>1/price</code>, renormalised to sum to 1 across the race). An edge of 1.30 means the model thinks a runner is 30% more likely to win than the market's own probabilities imply.</p>
-<h2>Features (<code>tipstar/features.py::FEATNAMES</code>)</h2>
+<p>&gt; <strong>Before you change anything in <code>tipstar/model.py</code>, <code>features.py</code>, &gt; <code>selection.py</code>, <code>retro.py</code>, or <code>trainers.py</code>: read this file first, and keep &gt; it in sync with your change.</strong> The "keep this current" contract and the exact &gt; list of files that must stay in lock-step with the code is at the bottom. &gt; If your change alters behaviour that this doc describes, the doc is stale the &gt; moment you commit — update it in the same commit.</p>
+<p>This document is the <strong>fundamented reference</strong> for the model: <em>what</em> it does, <em>exactly how</em>, and the <em>reasoning behind each decision</em> (including the ones the walk-forward analysis in <code>analysis/README.md</code> forced us to accept). It is the single place an agent or human goes to understand the model before touching it.</p>
+<hr>
+<h2>1. What the model does</h2>
+<p>Races AUS greyhound fields (4–8 runners) into <strong>win probabilities</strong> and compares them to the <strong>market's own implied probabilities</strong> to find <em>relative value</em> — runners the model thinks are more likely to win than their fixed-odds price implies. It then produces a capped, diversified <strong>tip list</strong>.</p>
+<p>It is a <strong>relative-value estimator, not a winner predictor</strong>: a high edge means "underpriced relative to the market," not "will win." See §7 for what it is not.</p>
+<h3>The pipeline (what actually runs, in order)</h3>
+<pre><code>train()  [tipstar/service.py]
+   for each settled race in [date_from, date_to]:
+       trainer_sr = refresh_trainer_strike_rates(cards strictly BEFORE the race)
+       rows, meta = features.build_race(card, trainer_sr)
+       if rows: pairs.append((rows-feats, winner_index))
+   coef = model.train(pairs, iters, lr, l2)
+   store.kv_set(&quot;coef&quot;, coef)            # persisted; survives restarts
+
+tips()  [tipstar/service.py]
+   coef = store.kv_get(&quot;coef&quot;) or model.EXAMPLE_COEF   # inert fallback
+   for each upcoming card:
+       rows, meta = features.build_race(card, trainer_sr)
+       model.score(rows, coef)          # -&gt; p_model, edge, rank per runner
+       picks = qualify(rows, ...)       # or qualify_all_top for full coverage
+       tips  = diversify(picks, ...)[:max_tips]
+       overlay(tips)                    # cross-book price check (see GAPS.md)</code></pre>
+<p><code>train</code> and <code>tips</code> are <strong>decoupled</strong>: training is a one-time + periodic offline pass (the <code>retro</code>/<code>train</code> CLI and the first-run backfill in <code>install.bat</code>); <code>tips</code> just loads the last trained <code>coef</code> and scores. If no <code>coef</code> has been trained yet, <code>tips</code> runs on the inert <code>EXAMPLE_COEF</code> (§5).</p>
+<hr>
+<h2>2. Scoring: conditional logit (softmax over runners)</h2>
+<p><code>model.score(rows, coef)</code> (in <code>tipstar/model.py</code>):</p>
+<ol><li>Linear utility per runner: <code>u_i = Σ_j coef[j] · feat_ij</code>.</li><li>Softmax across the runners in that race:</li></ol>
+<p><code>p_model_i = exp(u_i − max) / Σ_j exp(u_j − max)</code> (max-subtracted for numeric stability).</p>
+<ol><li>Market probability: <code>p_mkt_i</code> is the overround-normalised implied</li></ol>
+<p>probability from <code>fixed_win</code> prices — <code>1/price</code>, then renormalised to sum to 1 across the race (computed in <code>features.build_race</code>).</p>
+<ol><li><strong>Edge:</strong> <code>edge_i = p_model_i / p_mkt_i</code>. An edge of 1.30 means the model</li></ol>
+<p>thinks the runner is 30% more likely to win than its price implies.</p>
+<ol><li>Runners are re-sorted by <code>p_model</code> descending and assigned <code>rank</code> (1 = best).</li></ol>
+<p><strong>Why conditional logit rather than scoring runners in isolation:</strong> a win is a <em>relative</em> event — a runner's chance only has meaning against the field. Softmax guarantees <code>Σ p_model_i = 1</code> within the race and makes the model learn <em>within-race</em> contrast, which is exactly the structure of the problem. An independent per-runner classifier could (and does, naively) output probabilities that don't sum to 1 and ignores field strength.</p>
+<p><strong>Why divide by <code>p_mkt</code> (edge) instead of betting on <code>p_model</code> directly:</strong> the whole value proposition is beating the market's number. <code>p_model</code> alone says "how likely" — edge says "am I more confident than the odds." Since the market is the thing we're staking against, the <em>ratio</em> is the actionable signal.</p>
+<hr>
+<h2>3. Features (<code>tipstar/features.py::FEATNAMES</code> — 20 of them)</h2>
 <table>
-<tr><th>feature</th><th>meaning</th></tr>
-<tr><td><code>lp_mkt</code>, <code>lp_mkt_sq</code></td><td>log market probability, and its square (lets the model bend the market curve rather than just reproduce it)</td></tr>
-<tr><td><code>drift</code></td><td><code>log(open_price / current_price)</code> - positive when the price has shortened since open</td></tr>
-<tr><td><code>bt_z</code></td><td>z-scored best recorded time within the race</td></tr>
-<tr><td><code>settle_z</code></td><td>z-scored early settling position</td></tr>
-<tr><td><code>lead_inside</code></td><td><code>-settle_z</code> interacted with an inside-barrier (1-3) flag</td></tr>
-<tr><td><code>form_win</code>, <code>form_place</code></td><td>exponentially-weighted recent win/place rate (<code>features.parse_form</code>)</td></tr>
-<tr><td><code>log_starts</code></td><td><code>log1p(n_starts)</code> - more starts, more confidence in the form read</td></tr>
-<tr><td><code>tip_top1</code>, <code>tip_top3</code></td><td>1 if this runner is the #1 / top-3 in whatever consensus-tip list your feed supplies</td></tr>
-<tr><td><code>pm_z</code></td><td>z-scored <code>log1p(prize_money)</code></td></tr>
-<tr><td><code>age_z</code></td><td>z-scored age</td></tr>
-<tr><td><code>trainer_sr</code></td><td>shrunk trainer/kennel win-rate delta from <code>tipstar.trainers</code></td></tr>
-<tr><td><code>box1</code>..<code>box8</code></td><td>one-hot barrier draw</td></tr>
+<tr><th>feature</th><th>meaning</th><th>why it exists</th></tr>
+<tr><td><code>lp_mkt</code></td><td>log market probability</td><td>the market's own read; the dominant anchor (the model is anchored on price — see §5)</td></tr>
+<tr><td><code>lp_mkt_sq</code></td><td>its square</td><td>lets the model <em>bend</em> the market curve rather than just reproduce it</td></tr>
+<tr><td><code>drift</code></td><td><code>log(open_price / current_price)</code></td><td>late-money direction; positive when the price shortened since open</td></tr>
+<tr><td><code>bt_z</code></td><td>z-scored best recorded time within the race</td><td>speed, relative to the field</td></tr>
+<tr><td><code>settle_z</code></td><td>z-scored early settling position</td><td>running style relative to the field</td></tr>
+<tr><td><code>lead_inside</code></td><td><code>−settle_z</code> × inside-barrier (1–3) flag</td><td>interaction: inside runners that settle off the rail</td></tr>
+<tr><td><code>form_win</code>, <code>form_place</code></td><td>exponentially-weighted recent win/place rate (<code>parse_form</code>, decay 0.82)</td><td>recent form, recency-weighted</td></tr>
+<tr><td><code>log_starts</code></td><td><code>log1p(n_starts)</code></td><td>more starts = more confidence in the form read</td></tr>
+<tr><td><code>tip_top1</code>, <code>tip_top3</code></td><td>1 if #1 / top-3 in the feed's consensus-tip list</td><td>the book's own tip; analysis shows it's the strongest non-price signal</td></tr>
+<tr><td><code>pm_z</code></td><td>z-scored <code>log1p(prize_money)</code></td><td>class/grade proxy</td></tr>
+<tr><td><code>age_z</code></td><td>z-scored age</td><td>experience/youth</td></tr>
+<tr><td><code>trainer_sr</code></td><td>shrunk trainer/kennel win-rate delta (<code>tipstar/trainers.py</code>)</td><td>trainer strength, leakage-free (built only from prior data)</td></tr>
+<tr><td><code>box1</code>..<code>box8</code></td><td>one-hot barrier draw</td><td>the barrier is a genuine greyhound effect; dummies because it's categorical</td></tr>
 </table>
-<h2>Fitting coefficients: <code>tipstar.model.train()</code></h2>
-<p>Plain-Python gradient ascent on the conditional-logit log-likelihood - no numpy, no external deps. Feed it <code>(feats, winner_index)</code> pairs built from your own settled historical races (<code>features.build_race</code> on a <code>RaceCard</code> with <code>results</code> populated tells you which runner won). Comes with light L2 shrinkage (<code>l2=1.0</code> by default) since some features (barrier dummies especially) are sparse.</p>
-<p><code>model.EXAMPLE_COEF</code> is <strong>not</strong> a fitted model - see <code>GAPS.md</code>. It sets every weight to 0 except <code>lp_mkt=1.0</code>, which makes <code>p_model</code> reproduce <code>p_mkt</code> exactly (softmax of <code>log(p_mkt)</code>, renormalised, is just <code>p_mkt</code> again), so <code>edge</code> is always exactly <code>1.0</code>. It exists purely so <code>--mock --dry</code> runs without crashing.</p>
-<h2>Selection (<code>tipstar/selection.py</code>)</h2>
-<ol><li><strong><code>qualify</code></strong>: keep only each race's single top-rated runner</li></ol>
-<p>(<code>rank == 1</code>), only if <code>edge &amp;gt;= edge_min</code> and the price falls in <code>[price_min, price_max]</code>. Defaults: <code>edge_min=1.30</code>, <code>price_min=3.00</code>, <code>price_max=12.00</code> - narrow favourites and long-shots are excluded on purpose, since both are where a model built on ~20 hand-picked features is least trustworthy.</p>
-<ol><li><strong><code>diversify</code></strong>: caps how many selections can share a trainer/kennel</li></ol>
-<p>or a track (<code>max_per_trainer=2</code>, <code>max_per_track=2</code> by default), so one noisy signal can't dominate the whole list.</p>
-<ol><li><strong>cap</strong>: at most <code>max_tips</code> (default 6) selections total.</li></ol>
-<h2>Audit (<code>tipstar/audit.py</code>)</h2>
-<p>Re-derives what the pipeline would have tipped on a past date, using a trainer-form table built <strong>only from data before that date</strong> (<code>refresh_trainer_strike_rates</code> over <code>[date - form_days - 7, date - 1]</code>) and race odds rewound to <code>lead_seconds</code> before the advertised jump (<code>features.snapshot_odds</code>), then settles those picks against the real <code>results</code>. This is a standard walk-forward check: reusing today's trainer table to audit last week would leak information the live run could never have had, and would flatter the record.</p>
-<h2>What this is / isn't</h2>
-<p>Everything above produces a <strong>relative-value estimate versus the market</strong>, conditioned on whatever coefficients you trained. It is not a prediction that a given runner will win, it has not been validated against real outcomes by this repo, and 32%+ book overround (typical for fixed-odds racing markets) means flat-staking any price band is a losing game before you even get to whether the model is any good. See <code>GAPS.md</code>.</p>
+<p><strong>Design decisions, and why:</strong></p>
+<ul><li><strong>Race-normalised z-scores</strong> (<code>bt_z</code>, <code>settle_z</code>, <code>pm_z</code>, <code>age_z</code>) rather than</li></ul>
+<p>raw values: a 29.5s best time means different things on a 300m dash than a 600m. Z-scoring <em>within the race</em> makes the feature "this dog is fast <em>for this field</em>," which is what matters.</p>
+<ul><li><strong><code>trainer_sr</code> is leakage-free by construction:</strong> <code>refresh_trainer_strike_rates</code></li></ul>
+<p>builds the trainer table only from races <em>before</em> the race being scored (<code>tipstar/audit.py</code> does this explicitly for the walk-forward check). Reusing today's table to score last week would leak and flatter the record.</p>
+<ul><li><strong><code>build_race</code> refuses fields &lt;4 or &gt;8 runners</strong> and drops scratched /</li></ul>
+<p>non-primary-market runners: the model was fit on 4–8 fields; a 2-runner field or a 12-runner special has different structure and would corrupt the softmax.</p>
+<ul><li><strong><code>snapshot_odds(card, lead_seconds)</code></strong> rewinds a settled card's odds to</li></ul>
+<p><code>start − lead_seconds</code> (2.5h) using <code>flucs_with_timestamp</code>, so audits score past races on the prices that were <em>actually available</em> at decision time — no lookahead. This is the same no-lookahead rule the fluc features use.</p>
+<hr>
+<h2>4. Fitting (<code>tipstar/model.py::train</code>)</h2>
+<p>Plain-Python <strong>gradient ascent on the multinomial (conditional-logit) log-likelihood</strong> — no numpy, deliberately, to keep the whole pipeline dependency-free. For each iteration it accumulates the per-feature gradient <code>observed − expected</code> (the standard GLM score) across all training races and takes a step <code>w += lr·grad/|data|</code> with <strong>light L2 shrinkage</strong> (<code>l2=1.0</code> by default, scaled by <code>1/|data|</code>).</p>
+<p><strong>Why L2:</strong> several features — the barrier dummies especially — are sparse and easy to overfit on ~a few hundred–thousand races. Mild shrinkage keeps the coefficients sane without killing a real signal. <strong>Why it's "good enough":</strong> a few thousand races × 20 features trains in seconds. It's not tuned for anything larger; if the store grows to millions of races, swap in a real solver <em>without changing the feature contract or the score/edge/selection logic</em>.</p>
+<p>The training pair is <code>(feats, winner_index)</code>: <code>winner_index</code> is the position of the runner who actually finished 1st, recovered from <code>results</code> on a settled card. This is the ground truth the log-likelihood maximises.</p>
+<hr>
+<h2>5. The honest state of the model (read this before believing an edge)</h2>
+<p><strong><code>model.EXAMPLE_COEF</code> is a placeholder, not a model.</strong> It sets every weight to 0 except <code>lp_mkt = 1.0</code>. The softmax of <code>log(p_mkt)</code> (renormalised) is exactly <code>p_mkt</code> again, so scoring with it makes <code>edge = 1.0</code> for every runner, always. It exists <em>only</em> so <code>--mock --dry</code> runs produce sane, non-crashing output. <strong>Nothing in this repo ships a pre-fitted, pre-validated model.</strong></p>
+<p>A real <code>coef</code> only appears after <code>train()</code> runs on at least ~20 settled races. <code>install.bat</code> does a one-time 13-day backfill + train the first time you use it, so a fitted model is usually present by the first nightly run — but <strong>until then, <code>tips</code> scores on the inert placeholder.</strong></p>
+<p><strong>What the walk-forward analysis actually found</strong> (full detail in <code>analysis/README.md</code>, reproducible via its scripts):</p>
+<ol><li><strong>The market is roughly efficient.</strong> Model full-learn log-loss 1.4839 vs the</li></ol>
+<p>market's own implied 1.4784 — the model is <em>marginally worse</em> than the blind market favourite. It is essentially re-estimating the market's odds and is locked to the vig. Coefficients confirm it: <code>lp_mkt</code> and <code>lp_mkt_sq</code> dominate.</p>
+<ol><li><strong>Raw edge is anti-calibrated.</strong> Top-pick hit rate by model edge: &lt;1.0 → 48%,</li></ol>
+<p>1.0–1.3 → 41%, <strong>1.3–1.7 → 29% (worst)</strong>, &gt;1.7 → 22%. So <strong>gating on <code>edge ≥ 1.30</code> (the current selection) selects exactly where the model is least accurate.</strong> The value signal that <em>does</em> show a positive ROI is <strong>EV = <code>model_prob × price</code> clearing the vig</strong>, not raw edge (EV ≥ 1.15 in the 2–4 price band was the one positive lever: +6.8% on 73 bets — small sample, treat as "not negative," not "profitable").</p>
+<ol><li>**The current <code>edge ≥ 1.30</code> gate is therefore a known-weak choice kept for</li></ol>
+<p>stability and simplicity<strong>, not a validated optimum. This is the single most important thing to know if you're tempted to "improve the model" — the data says the lever is EV-based selection + decision-time price movement, not a better edge threshold. </strong>Do not over-sell an edge; the honest read is a thin, probably-noise edge anchored on price.**</p>
+<p>This is why the dashboard and all reports carry the disclaimer that outputs are <em>relative-value estimates from an unvalidated model, not outcome predictions or betting advice</em>.</p>
+<hr>
+<h2>6. Selection and the Top 6 shortlist</h2>
+<p><strong>Selection</strong> (<code>tipstar/selection.py</code>), applied per race by <code>tips()</code> and the <code>retro</code> backtest (both use <code>Service.DEFAULTS</code>, mirrored in <code>retro.DEFAULTS</code>):</p>
+<ol><li><strong><code>qualify</code></strong> — keep only each race's <strong>top-rated runner</strong> (<code>rank == 1</code>), and</li></ol>
+<p>only if it clears the gate: <code>edge ≥ 1.30</code> and <code>price ∈ [3.00, 12.00]</code>. Narrow favourites (&lt;3) and long-shots (&gt;12) are excluded on purpose — both ends are where a ~20-feature model is least trustworthy, and the vig is worst on the short end. (<code>qualify_all_top</code> is the full-coverage variant: every race's rank-1 regardless of gate, used when the brief is "a tip for every race.")</p>
+<ol><li><strong><code>diversify</code></strong> — cap exposure to any one trainer/kennel or track</li></ol>
+<p>(<code>max_per_trainer = 2</code>, <code>max_per_track = 2</code>), so one noisy signal can't dominate the list. Operates on the list <strong>already sorted by descending edge</strong>.</p>
+<ol><li><strong>cap</strong> — at most <code>max_tips = 6</code> selections total.</li></ol>
+<p><code>DEFAULTS = dict(edge_min=1.30, price_min=3.00, price_max=12.00, max_tips=6, max_per_trainer=2, max_per_track=2, form_days=8)</code>.</p>
+<p><strong>The Top 6 shortlist on the dashboard</strong> (<code>tipstar/dashboard.py</code>, the "Top 6 · overall" / "Top 6 · daily" toggle and the always-on golden ring) is the <em>same</em> gate and diversification caps, applied two ways by <code>dashboard._shortlist_ids(tips, scope)</code>:</p>
+<ul><li><strong><code>scope=&quot;overall&quot;</code></strong> — the six best across <strong>all</strong> races: one global walk</li></ul>
+<p>of all qualifying tips, highest edge first, with the per-trainer / per-track counters <strong>shared</strong> across the whole list. This set gets the <strong>golden box ring in every view</strong> (it's the "the" picks).</p>
+<ul><li><strong><code>scope=&quot;daily&quot;</code></strong> — six <strong>per race day</strong>: the counters reset each day, so</li></ul>
+<p>each day gets its own six. This is exactly the model's live shortlist and is what the retro backtest reports.</p>
+<p>Both are computed offline at build time and shipped as <code>top6All</code> / <code>top6</code> flags in the dashboard's tip payload; the client just filters and highlights. Keeping the shortlist logic in the same module as the gate it mirrors means the dashboard can't drift from the live selection.</p>
+<hr>
+<h2>7. What this is / isn't</h2>
+<ul><li><strong>Is:</strong> a relative-value estimator versus the market, conditioned on whatever</li></ul>
+<p>coefficients you trained. Walk-forward, leakage-free by construction (trainer table and odds both restricted to pre-decision data).</p>
+<ul><li><strong>Isn't:</strong> a winner predictor; a validated edge (it is not — §5); or advice.</li></ul>
+<p>~32% book overround on fixed-odds racing means flat-staking any price band loses before the model's quality is even a factor.</p>
+<p>For the full "what we deliberately didn't build" list (no notification channel wired, no compliance review, the inert-coef caveat, the drift-gate warm-up, the overlay only fires on qualifying tips), see <code>GAPS.md</code>. For what the data shows, see <code>analysis/README.md</code>. For the raw card schema the whole thing is built on, see <code>docs/DATA_CONTRACT.md</code>.</p>
+<hr>
+<h2>8. Keeping this doc current (agent contract)</h2>
+<p><strong>Read this file before modifying model code.</strong> These files are the model's single unit of meaning — if you change one, re-read this doc and update it in the <strong>same commit</strong>:</p>
+<table>
+<tr><th>file</th><th>what it owns</th><th>doc section to update</th></tr>
+<tr><td><code>tipstar/model.py</code></td><td>softmax scoring, <code>edge</code>, <code>train</code> fitter</td><td>§2, §4</td></tr>
+<tr><td><code>tipstar/features.py</code></td><td>the 20-feature contract, <code>build_race</code>, <code>snapshot_odds</code></td><td>§3</td></tr>
+<tr><td><code>tipstar/selection.py</code></td><td><code>qualify</code> / <code>qualify_all_top</code> / <code>diversify</code></td><td>§6</td></tr>
+<tr><td><code>tipstar/retro.py</code></td><td><code>DEFAULTS</code> (the gate constants)</td><td>§6</td></tr>
+<tr><td><code>tipstar/trainers.py</code></td><td><code>trainer_sr</code> shrinkage</td><td>§3</td></tr>
+<tr><td><code>tipstar/dashboard.py</code></td><td><code>_shortlist_ids</code>, Top 6 overall/daily, golden ring</td><td>§6</td></tr>
+</table>
+<p>Rules:</p>
+<ol><li><strong>Constants live in one place.</strong> The gate (<code>edge_min</code>, price band, caps) is</li></ol>
+<p>defined in <code>Service.DEFAULTS</code> / <code>retro.DEFAULTS</code> and <em>mirrored</em> into <code>dashboard.TOP6_*</code>. If you change a constant, change it everywhere it's mirrored and bump the numbers in §6 — a doc that says 1.30 while the code says 1.25 is a bug.</p>
+<ol><li><strong>Adding or removing a feature</strong> requires: updating <code>FEATNAMES</code>, the §3</li></ol>
+<p>table, and (if it's a price-touching feature) confirming it obeys the no-lookahead cutoff in §3. A feature not in the table is an undocumented feature.</p>
+<ol><li>**Changing the model's <em>decision</em> (the gate, the diversification, the</li></ol>
+<p>shortlist scope) is a fundamented change** — add one line to §5 explaining <em>why</em>, citing the analysis that justifies it (or stating plainly that it's a stability choice pending data, like the current <code>edge</code> gate).</p>
+<ol><li><strong>After a real model change:</strong> retrain (<code>python -m tipstar.cli train</code> /</li></ol>
+<p><code>retro</code>), regenerate the dashboard, <code>python -m tipstar.cli publish</code>, and verify live — per <code>AGENTS.md</code>. The numbers in §5 (log-loss, hit-rate-by-edge, EV table) are only as good as the last <code>analysis/README.md</code> run; re-run the analysis if you change anything that affects scoring.</p>
+<p>The full deploy loop (test → commit → publish → verify live) is in <code>AGENTS.md</code>. The endpoint intel and deep gotchas are in the <code>greyhound-tipster-pipeline</code> skill.</p>
 </main>
 <footer>Model outputs are relative-value estimates from an unvalidated model — not outcome predictions and not financial or betting advice.</footer>
 </body></html>
