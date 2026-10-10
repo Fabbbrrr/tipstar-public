@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Deck — Deck Builder Redesign</title>
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://fabbbrrr.github.io/tipstar-public/projectdeck-deckbuilder.html">
+    <meta property="og:title" content="Project Deck — Deck Builder Redesign">
+    <meta property="og:description" content="Design canvas (variants A/B) + the shipped screen: windowed fixed-pitch lists, art thumbnails, tab chips, focus plates.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Project Deck — Deck Builder Redesign">
+    <meta name="twitter:description" content="Design canvas (variants A/B) + the shipped screen, verified against the canvas spec.">
+    <link rel="canonical" href="https://fabbbrrr.github.io/tipstar-public/projectdeck-deckbuilder.html">
+    <meta name="description" content="Project Deck deck-builder redesign: design canvas variants A/B plus the shipped in-game screen.">
+    <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans+SC&family=Crimson+Pro:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Design Tokens - Colors */
+            --desk-deep: #1E1811;
+            --desk-mid: #3A2D21;
+            --desk-warm: #38281B;
+            --desk-edge: #1A140F;
+
+            --folio-light: #EFE4C9;
+            --folio-mid: #E2D3B0;
+            --folio-shade: #D2C099;
+            --folio-deckle: #C9B78C;
+            --folio-gutter: #5A4628;
+
+            --binding-dark: #3A2C1B;
+            --binding-light: #6B5535;
+            --binding-thread: #8B7247;
+
+            /* Design Tokens - Typography */
+            --font-display: 'Crimson Pro', serif;
+            --font-labels: 'Alegreya Sans SC', sans-serif;
+
+            --text-display-size: 40px;
+            --text-heading-size: 30px;
+            --text-numeral-size: 34px;
+            --text-title-size: 21px;
+            --text-body-size: 17px;
+            --text-small-size: 15px; /* critical min size */
+            --text-label-size: 14px;
+            --text-label-sm-size: 12px; /* decorative min size */
+            --line-height-base: 1.28;
+
+            /* Custom Spacing / UI elements */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --border-radius-sm: 3px;
+            --border-radius-md: 5px;
+
+            /* Injected Hermes Theme Variables (with fallbacks for standalone render) */
+            --foreground: var(--folio-gutter, #5A4628); /* Dark text on light background */
+            --muted-foreground: var(--binding-thread, #8B7247);
+            --accent: #d4af37; /* Gold-like accent for selection/focus */
+            --border: var(--folio-shade, #D2C099);
+            --card: var(--folio-mid, #E2D3B0);
+        }
+
+        /* Basic Resets & Global Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--desk-deep); /* Outer background */
+            font-family: var(--font-body);
+            color: var(--foreground);
+            line-height: var(--line-height-base);
+            overflow: hidden; /* Ensure no scrollbars on the main viewport */
+        }
+
+        #screen-container {
+            width: 1280px;
+            height: 768px;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--binding-dark); /* Simulates the outer book cover */
+            border: 10px solid var(--desk-edge); /* Edge of the book */
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        #variant-switcher {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        #variant-switcher button {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background-color: var(--binding-light);
+            color: var(--folio-light);
+            border: 1px solid var(--binding-thread);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            font-family: var(--font-labels);
+            font-size: var(--text-label-sm-size);
+            text-transform: uppercase;
+        }
+
+        #variant-switcher button.active {
+            background-color: var(--accent);
+            color: var(--desk-deep);
+            border-color: var(--accent);
+        }
+
+        .variant-content {
+            display: none; /* Hidden by default */
+            flex-grow: 1;
+            position: relative;
+            padding: var(--spacing-md); /* Inner padding for the "pages" */
+            display: flex; /* Override for initial setup, will be controlled by JS */
+        }
+
+        .variant-content.active {
+            display: flex;
+        }
+
+        .folio-page {
+            background-color: var(--folio-light);
+            border: 1px solid var(--folio-deckle);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            padding: var(--spacing-lg);
+            display: flex;
+            flex-direction: column;
+            position: relative; /* For absolute positioning of children if needed */
+        }
+
+        .left-folio {
+            flex: 0.4; /* Approximately 40% width for collection */
+            border-right: none; /* No border for the "gutter" side */
+        }
+
+        .right-folio {
+            flex: 0.6; /* Approximately 60% width for deck */
+            border-left: none; /* No border for the "gutter" side */
+        }
+
+        .gutter {
+            width: var(--spacing-md); /* Simulated book spine/gutter */
+            background-color: var(--folio-gutter);
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        }
+
+        #footer-keybinds {
+            height: 40px; /* Fixed height for the footer */
+            background-color: var(--binding-dark);
+            color: var(--folio-light);
+            font-family: var(--font-labels);
+            font-size: var(--text-label-sm-size);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 var(--spacing-md);
+            border-top: 1px solid var(--desk-edge);
+        }
+
+        /* --- Variant A Specific Styles --- */
+        #variant-A .left-folio {
+            gap: var(--spacing-sm);
+        }
+
+        #variant-A .search-filter-section {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        #variant-A .search-input {
+            width: 100%;
+            padding: var(--spacing-xs);
+            background-color: var(--folio-mid);
+            border: 1px solid var(--folio-deckle);
+            color: var(--foreground);
+            font-family: var(--font-labels);
+            font-size: var(--text-label-size);
+        }
+
+        #variant-A .cost-filter {
+            display: flex;
+            gap: var(--spacing-xs);
+        }
+
+        #variant-A .cost-filter button {
+            flex: 1;
+            padding: var(--spacing-xs);
+            background-color: var(--folio-shade);
+            border: 1px solid var(--folio-deckle);
+            color: var(--foreground);
+            font-family: var(--font-labels);
+            font-size: var(--text-label-sm-size);
+            cursor: pointer;
+        }
+
+        #variant-A .cost-filter button.active {
+            background-color: var(--accent);
+            color: var(--desk-deep);
+            border-color: var(--accent);
+        }
+
+        #variant-A .category-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        #variant-A .category-tabs button {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background-color: var(--folio-shade);
+            border: 1px solid var(--folio-deckle);
+            color: var(--foreground);
+            font-family: var(--font-labels);
+            font-size: var(--text-label-sm-size);
+            cursor: pointer;
+        }
+
+        #variant-A .category-tabs button.active {
+            background-color: var(--accent);
+            color: var(--desk-deep);
+            border-color: var(--accent);
+        }
+
+
+        #variant-A .card-list-container {
+            flex-grow: 1;
+            overflow-y: auto; /* Enable scrolling for the card list */
+            border: 1px solid var(--folio-deckle);
+            background-color: var(--card);
+        }
+
+        #variant-A .card-list {
+            list-style: none;
+            padding: var(--spacing-xs);
+        }
+
+        #variant-A .card-list-item {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-xs);
+            margin-bottom: 2px; /* Small separation between items */
+            background-color: transparent;
+            font-family: var(--font-body);
+            font-size: var(--text-small-size);
+            color: var(--foreground);
+            cursor: pointer;
+            transition: background-color 0.1s ease;
+        }
+
+        #variant-A .card-list-item:nth-child(even) {
+            background-color: rgba(0, 0, 0, 0.03); /* Subtle zebra striping */
+        }
+
+        #variant-A .card-list-item:hover,
+        #variant-A .card-list-item.focused {
+            background-color: var(--folio-shade);
+            outline: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        #variant-A .card-thumbnail {
+            width: 40px; /* Example thumbnail size */
+            height: 40px;
+            background-color: var(--binding-light);
+            border: 1px solid var(--binding-thread);
+            margin-right: var(--spacing-sm);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--text-label-sm-size);
+            color: var(--folio-light);
+        }
+
+        #variant-A .card-info {
+            flex-grow: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #variant-A .card-name {
+            font-weight: bold;
+        }
+
+        #variant-A .card-details {
+            display: flex;
+            gap: var(--spacing-sm);
+            font-size: var(--text-label-size);
+        }
+
+        #variant-A .card-cost,
+        #variant-A .card-in-deck {
+            background-color: var(--binding-dark);
+            color: var(--folio-light);
+            padding: 2px 6px;
+            border-radius: var(--border-radius-sm);
+            font-family: var(--font-labels);
+        }
+
+        #variant-A .card-in-deck.zero {
+            opacity: 0.5; /* Indicate zero count */
+        }
+
+        #variant-A .right-folio {
+            padding-left: var(--spacing-md);
+            gap: var(--spacing-sm);
+        }
+
+        #variant-A .deck-title {
+            font-family: var(--font-labels);
+            font-size: var(--text-heading-size);
+            text-align: center;
+            color: var(--desk-warm);
+            margin-bottom: var(--spacing-md);
+            text-transform: uppercase;
+        }
+
+        #variant-A .deck-header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        #variant-A .deck-slots {
+            display: flex;
+            gap: var(--spacing-xs);
+        }
+
+        #variant-A .deck-slot {
+            padding: var(--spacing-xs);
+            background-color: var(--folio-shade);
+            border: 1px solid var(--folio-deckle);
+            color: var(--foreground);
+            font-family: var(--font-labels);
+            font-size: var(--text-label-sm-size);
+            cursor: pointer;
+        }
+
+        #variant-A .deck-slot.active {
+            background-color: var(--accent);
+            color: var(--desk-deep);
+            border-color: var(--accent);
+        }
+
+        #variant-A .deck-size {
+            font-family: var(--font-labels);
+            font-size: var(--text-title-size);
+            color: var(--foreground);
+        }
+
+        #variant-A .cost-curve-container {
+            margin-bottom: var(--spacing-md);
+        }
+
+        #variant-A .cost-curve-label {
+            font-family: var(--font-labels);
+            font-size: var(--text-label-size);
+            margin-bottom: var(--spacing-xs);
+            color: var(--muted-foreground);
+        }
+
+        #variant-A .cost-curve-graph {
+            display: flex;
+            align-items: flex-end;
+            gap: var(--spacing-xs);
+            height: 80px; /* Fixed height for the graph */
+            background-color: var(--card);
+            padding: var(--spacing-xs);
+            border: 1px solid var(--folio-deckle);
+        }
+
+        #variant-A .cost-bar {
+            flex: 1;
+            background-color: var(--binding-light);
+            border-top-left-radius: var(--border-radius-sm);
+            border-top-right-radius: var(--border-radius-sm);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            position: relative;
+        }
+
+        #variant-A .cost-bar span {
+            font-family: var(--font-labels);
+            font-size: var(--text-label-sm-size);
+            color: var(--desk-deep);
+            position: absolute;
+            top: -15px;
+        }
+
+        #variant-A .cost-bar-label {
+            position: absolute;
+            bottom: -15px;
+            font-family: var(--font-labels);
+            font-size: var(--text-label-sm-size);
+            color: var(--foreground);
+        }
+
+
+        #variant-A .validation-line {
+            font-family: var(--font-labels);
+            font-size: var(--text-small-size);
+            text-align: center;
+            padding: var(--spacing-xs);
+            background-color: #d4edda; /* Light green for playable */
+            color: #155724; /* Dark green text */
+            border-radius: var(--border-radius-sm);
+            margin-bottom: var(--spacing-md);
+        }
+        #variant-A .validation-line.error {
+            background-color: #f8d7da; /* Light red for error */
+            color: #721c24; /* Dark red text */
+        }
+
+
+        #variant-A .deck-list-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            border: 1px solid var(--folio-deckle);
+            background-color: var(--card);
+            padding: var(--spacing-xs);
+        }
+
+        #variant-A .deck-list {
+            list-style: none;
+        }
+
+        #variant-A .deck-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-xs);
+            margin-bottom: 2px;
+            font-family: var(--font-body);
+            font-size: var(--text-small-size);
+            color: var(--foreground);
+        }
+
+        #variant-A .deck-list-item .count {
+            font-family: var(--font-labels);
+            font-size: var(--text-label-size);
+            color: var(--muted-foreground);
+            margin-right: var(--spacing-xs);
+        }
+
+        #variant-A .deck-list-item .name {
+            flex-grow: 1;
+            font-weight: bold;
+        }
+
+        #variant-A .deck-list-item .cost {
+            font-family: var(--font-labels);
+            font-size: var(--text-label-size);
+            background-color: var(--binding-dark);
+            color: var(--folio-light);
+            padding: 2px 6px;
+            border-radius: var(--border-radius-sm);
+        }
+
+        #variant-A .action-bar {
+            display: flex;
+            justify-content: space-around;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-md);
+        }
+
+        #variant-A .action-bar button {
+            flex: 1;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background-color: var(--binding-light);
+            color: var(--folio-light);
+            border: 1px solid var(--binding-thread);
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            font-family: var(--font-labels);
+            font-size: var(--text-small-size);
+            text-transform: uppercase;
+            transition: background-color 0.1s ease, color 0.1s ease, border-color 0.1s ease;
+            min-height: 28px; /* Tap target >= ~28px */
+        }
+
+        #variant-A .action-bar button:hover {
+            background-color: var(--accent);
+            color: var(--desk-deep);
+            border-color: var(--accent);
+        }
+
+    </style>
+</head>
+<body>
+    <div id="screen-container">
+        <div id="variant-switcher">
+            <button class="active" data-variant="A" data-hermes-send='Deck builder variant A selected'>List View (A)</button>
+            <button data-variant="B" data-hermes-send='Deck builder variant B selected'>Grid View (B)</button>
+        </div>
+
+        <div id="variant-A" class="variant-content active">
+            <div class="left-folio folio-page">
+                <div class="search-filter-section">
+                    <input type="text" class="search-input" placeholder="SEARCH...">
+                    <div class="cost-filter">
+                        <button class="active">ALL</button>
+                        <button>0</button>
+                        <button>1</button>
+                        <button>2</button>
+                        <button>3</button>
+                        <button>4</button>
+                        <button>5</button>
+                    </div>
+                    <div class="category-tabs">
+                        <button class="active">ALL</button>
+                        <button>SPELLS</button>
+                        <button>WARDS</button>
+                        <button>ERUPS</button>
+                        <button>ITEMS</button>
+                        <button>RUNES</button>
+                        <button>SKILLS</button>
+                        <button>TRAPS</button>
+                        <button>GEAR</button>
+                    </div>
+                </div>
+
+                <div class="card-list-container">
+                    <ul class="card-list">
+                        <li class="card-list-item" data-card-id="1">
+                            <div class="card-thumbnail">ART</div>
+                            <div class="card-info">
+                                <span class="card-name">Arcane Blast</span>
+                                <div class="card-details">
+                                    <span class="card-cost">Cost 2</span>
+                                    <span class="card-in-deck">x2</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="card-list-item focused" data-card-id="2">
+                            <div class="card-thumbnail">ART</div>
+                            <div class="card-info">
+                                <span class="card-name">Boulder Bash</span>
+                                <div class="card-details">
+                                    <span class="card-cost">Cost 3</span>
+                                    <span class="card-in-deck">x1</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="card-list-item" data-card-id="3">
+                            <div class="card-thumbnail">ART</div>
+                            <div class="card-info">
+                                <span class="card-name">Chilling Grasp</span>
+                                <div class="card-details">
+                                    <span class="card-cost">Cost 1</span>
+                                    <span class="card-in-deck zero">x0</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="card-list-item" data-card-id="4">
+                            <div class="card-thumbnail">ART</div>
+                            <div class="card-info">
+                                <span class="card-name">Dragonfire Breath</span>
+                                <div class="card-details">
+                                    <span class="card-cost">Cost 4</span>
+                                    <span class="card-in-deck">x1</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="card-list-item" data-card-id="5">
+                            <div class="card-thumbnail">ART</div>
+                            <div class="card-info">
+                                <span class="card-name">Earthen Wall</span>
+                                <div class="card-details">
+                                    <span class="card-cost">Cost 2</span>
+                                    <span class="card-in-deck zero">x0</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="card-list-item" data-card-id="6">
+                            <div class="card-thumbnail">ART</div>
+                            <div class="card-info">
+                                <span class="card-name">Featherlight Step</span>
+                                <div class="card-details">
+                                    <span class="card-cost">Cost 0</span>
+                                    <span class="card-in-deck">x3</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="card-list-item" data-card-id="7">
+                            <div class="card-thumbnail">ART</div>
+                            <div class="card-info">
+                                <span class="card-name">Glimmering Shard</span>
+                                <div class="card-details">
+                                    <span class="card-cost">Cost 1</span>
+                                    <span class="card-in-deck">x2</span>
+                                </div>
+                            </div>
+                        </li>
+                         <li class="card-list-item" data-card-id="8">
+                            <div class="card-thumbnail">ART</div>
+                            <div class="card-info">
+                                <span class="card-name">Healing Balm</span>
+                                <div class="card-details">
+                                    <span class="card-cost">Cost 1</span>
+                                    <span class="card-in-deck">x2</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="card-list-item" data-card-id="9">
+                            <div class="card-thumbnail">ART</div>
+                            <div class="card-info">
+                                <span class="card-name">Inferno Burst</span>
+                                <div class="card-details">
+                                    <span class="card-cost">Cost 3</span>
+                                    <span class="card-in-deck">x1</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="card-list-item" data-card-id="10">
+                            <div class="card-thumbnail">ART</div>
+                            <div class="card-info">
+                                <span class="card-name">Jade Serpent Strike</span>
+                                <div class="card-details">
+                                    <span class="card-cost">Cost 2</span>
+                                    <span class="card-in-deck zero">x0</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="card-list-item" data-card-id="11">
+                            <div class="card-thumbnail">ART</div>
+                            <div class="card-info">
+                                <span class="card-name">Keen Edge</span>
+                                <div class="card-details">
+                                    <span class="card-cost">Cost 0</span>
+                                    <span class="card-in-deck">x3</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="card-list-item" data-card-id="12">
+                            <div class="card-thumbnail">ART</div>
+                            <div class="card-info">
+                                <span class="card-name">Lightning Bolt</span>
+                                <div class="card-details">
+                                    <span class="card-cost">Cost 2</span>
+                                    <span class="card-in-deck">x2</span>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="gutter"></div>
+
+            <div class="right-folio folio-page">
+                <h2 class="deck-title">Deck Builder</h2>
+                <div class="deck-header-info">
+                    <div class="deck-slots">
+                        <button class="deck-slot active">Custom 1</button>
+                        <button class="deck-slot">Custom 2</button>
+                        <button class="deck-slot">Custom 3</button>
+                    </div>
+                    <span class="deck-size">13/30 Cards</span>
+                </div>
+
+                <div class="cost-curve-container">
+                    <div class="cost-curve-label">Cost Curve</div>
+                    <div class="cost-curve-graph">
+                        <div class="cost-bar" style="height: 20%;"><span class="card-count">3</span><span class="cost-bar-label">0</span></div>
+                        <div class="cost-bar" style="height: 40%;"><span class="card-count">5</span><span class="cost-bar-label">1</span></div>
+                        <div class="cost-bar" style="height: 60%;"><span class="card-count">7</span><span class="cost-bar-label">2</span></div>
+                        <div class="cost-bar" style="height: 80%;"><span class="card-count">9</span><span class="cost-bar-label">3</span></div>
+                        <div class="cost-bar" style="height: 50%;"><span class="card-count">6</span><span class="cost-bar-label">4</span></div>
+                        <div class="cost-bar" style="height: 30%;"><span class="card-count">4</span><span class="cost-bar-label">5+</span></div>
+                    </div>
+                </div>
+
+                <div class="validation-line">STATUS Playable</div>
+
+                <div class="deck-list-container">
+                    <ul class="deck-list">
+                        <li class="deck-list-item"><span class="count">x2</span><span class="name">Arcane Blast</span><span class="cost">2</span></li>
+                        <li class="deck-list-item"><span class="count">x1</span><span class="name">Boulder Bash</span><span class="cost">3</span></li>
+                        <li class="deck-list-item"><span class="count">x1</span><span class="name">Dragonfire Breath</span><span class="cost">4</span></li>
+                        <li class="deck-list-item"><span class="count">x3</span><span class="name">Featherlight Step</span><span class="cost">0</span></li>
+                        <li class="deck-list-item"><span class="count">x2</span><span class="name">Glimmering Shard</span><span class="cost">1</span></li>
+                        <li class="deck-list-item"><span class="count">x2</span><span class="name">Healing Balm</span><span class="cost">1</span></li>
+                        <li class="deck-list-item"><span class="count">x1</span><span class="name">Inferno Burst</span><span class="cost">3</span></li>
+                        <li class="deck-list-item"><span class="count">x3</span><span class="name">Keen Edge</span><span class="cost">0</span></li>
+                        <li class="deck-list-item"><span class="count">x2</span><span class="name">Lightning Bolt</span><span class="cost">2</span></li>
+                    </ul>
+                </div>
+
+                <div class="action-bar">
+                    <button>AUTO-FIX</button>
+                    <button>SAVE</button>
+                    <button>← BACK</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variant B Placeholder -->
+        <div id="variant-B" class="variant-content">
+            <div class="left-folio folio-page">
+                <div class="search-filter-section">
+                    <input type="text" class="search-input" placeholder="SEARCH...">
+                    <div class="cost-filter">
+                        <button class="active">ALL</button>
+                        <button>0</button>
+                        <button>1</button>
+                        <button>2</button>
+                        <button>3</button>
+                        <button>4</button>
+                        <button>5</button>
+                    </div>
+                     <div class="category-tabs">
+                        <button class="active">ALL</button>
+                        <button>SPELLS</button>
+                        <button>WARDS</button>
+                        <button>ERUPS</button>
+                        <button>ITEMS</button>
+                        <button>RUNES</button>
+                        <button>SKILLS</button>
+                        <button>TRAPS</button>
+                        <button>GEAR</button>
+                    </div>
+                </div>
+                <div class="card-grid-container">
+                    <div class="card-grid">
+                        <!-- Example grid items -->
+                        <div class="grid-card">
+                            <div class="card-art-placeholder">ART</div>
+                            <div class="card-name-overlay">Arcane Blast</div>
+                            <div class="card-cost-overlay">2</div>
+                            <div class="card-in-deck-overlay">x2</div>
+                        </div>
+                         <div class="grid-card focused">
+                            <div class="card-art-placeholder">ART</div>
+                            <div class="card-name-overlay">Boulder Bash</div>
+                            <div class="card-cost-overlay">3</div>
+                            <div class="card-in-deck-overlay">x1</div>
+                        </div>
+                        <div class="grid-card">
+                            <div class="card-art-placeholder">ART</div>
+                            <div class="card-name-overlay">Chilling Grasp</div>
+                            <div class="card-cost-overlay">1</div>
+                            <div class="card-in-deck-overlay zero">x0</div>
+                        </div>
+                        <div class="grid-card">
+                            <div class="card-art-placeholder">ART</div>
+                            <div class="card-name-overlay">Dragonfire Breath</div>
+                            <div class="card-cost-overlay">4</div>
+                            <div class="card-in-deck-overlay">x1</div>
+                        </div>
+                        <div class="grid-card">
+                            <div class="card-art-placeholder">ART</div>
+                            <div class="card-name-overlay">Earthen Wall</div>
+                            <div class="card-cost-overlay">2</div>
+                            <div class="card-in-deck-overlay zero">x0</div>
+                        </div>
+                        <div class="grid-card">
+                            <div class="card-art-placeholder">ART</div>
+                            <div class="card-name-overlay">Featherlight Step</div>
+                            <div class="card-cost-overlay">0</div>
+                            <div class="card-in-deck-overlay">x3</div>
+                        </div>
+                        <div class="grid-card">
+                            <div class="card-art-placeholder">ART</div>
+                            <div class="card-name-overlay">Glimmering Shard</div>
+                            <div class="card-cost-overlay">1</div>
+                            <div class="card-in-deck-overlay">x2</div>
+                        </div>
+                         <div class="grid-card">
+                            <div class="card-art-placeholder">ART</div>
+                            <div class="card-name-overlay">Healing Balm</div>
+                            <div class="card-cost-overlay">1</div>
+                            <div class="card-in-deck-overlay">x2</div>
+                        </div>
+                        <div class="grid-card">
+                            <div class="card-art-placeholder">ART</div>
+                            <div class="card-name-overlay">Inferno Burst</div>
+                            <div class="card-cost-overlay">3</div>
+                            <div class="card-in-deck-overlay">x1</div>
+                        </div>
+                        <div class="grid-card">
+                            <div class="card-art-placeholder">ART</div>
+                            <div class="card-name-overlay">Jade Serpent Strike</div>
+                            <div class="card-cost-overlay">2</div>
+                            <div class="card-in-deck-overlay zero">x0</div>
+                        </div>
+                        <div class="grid-card">
+                            <div class="card-art-placeholder">ART</div>
+                            <div class="card-name-overlay">Keen Edge</div>
+                            <div class="card-cost-overlay">0</div>
+                            <div class="card-in-deck-overlay">x3</div>
+                        </div>
+                        <div class="grid-card">
+                            <div class="card-art-placeholder">ART</div>
+                            <div class="card-name-overlay">Lightning Bolt</div>
+                            <div class="card-cost-overlay">2</div>
+                            <div class="card-in-deck-overlay">x2</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gutter"></div>
+
+            <div class="right-folio folio-page">
+                <h2 class="deck-title">Deck Builder</h2>
+                <div class="deck-header-info">
+                    <div class="deck-slots">
+                        <button class="deck-slot active">Custom 1</button>
+                        <button class="deck-slot">Custom 2</button>
+                        <button class="deck-slot">Custom 3</button>
+                    </div>
+                    <span class="deck-size">13/30 Cards</span>
+                </div>
+
+                <div class="cost-curve-container">
+                    <div class="cost-curve-label">Cost Curve</div>
+                    <div class="cost-curve-graph">
+                        <div class="cost-bar" style="height: 20%;"><span class="card-count">3</span><span class="cost-bar-label">0</span></div>
+                        <div class="cost-bar" style="height: 40%;"><span class="card-count">5</span><span class="cost-bar-label">1</span></div>
+                        <div class="cost-bar" style="height: 60%;"><span class="card-count">7</span><span class="cost-bar-label">2</span></div>
+                        <div class="cost-bar" style="height: 80%;"><span class="card-count">9</span><span class="cost-bar-label">3</span></div>
+                        <div class="cost-bar" style="height: 50%;"><span class="card-count">6</span><span class="cost-bar-label">4</span></div>
+                        <div class="cost-bar" style="height: 30%;"><span class="card-count">4</span><span class="cost-bar-label">5+</span></div>
+                    </div>
+                </div>
+
+                <div class="validation-line">STATUS Playable</div>
+
+                <div class="deck-list-container">
+                    <ul class="deck-list">
+                        <li class="deck-list-item"><span class="count">x2</span><span class="name">Arcane Blast</span><span class="cost">2</span></li>
+                        <li class="deck-list-item"><span class="count">x1</span><span class="name">Boulder Bash</span><span class="cost">3</span></li>
+                        <li class="deck-list-item"><span class="count">x1</span><span class="name">Dragonfire Breath</span><span class="cost">4</span></li>
+                        <li class="deck-list-item"><span class="count">x3</span><span class="name">Featherlight Step</span><span class="cost">0</span></li>
+                        <li class="deck-list-item"><span class="count">x2</span><span class="name">Glimmering Shard</span><span class="cost">1</span></li>
+                        <li class="deck-list-item"><span class="count">x2</span><span class="name">Healing Balm</span><span class="cost">1</span></li>
+                        <li class="deck-list-item"><span class="count">x1</span><span class="name">Inferno Burst</span><span class="cost">3</span></li>
+                        <li class="deck-list-item"><span class="count">x3</span><span class="name">Keen Edge</span><span class="cost">0</span></li>
+                        <li class="deck-list-item"><span class="count">x2</span><span class="name">Lightning Bolt</span><span class="cost">2</span></li>
+                    </ul>
+                </div>
+
+                <div class="action-bar">
+                    <button>AUTO-FIX</button>
+                    <button>SAVE</button>
+                    <button>← BACK</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="footer-keybinds">
+            <span>WASD/STICK MOVE</span>
+            <span>ENTER/A ADD</span>
+            <span>C REMOVE</span>
+            <span>Q/E FILTER</span>
+            <span>TAB AUTO-FIX</span>
+            <span>LEFT/RIGHT SWITCH DECK</span>
+            <span>SPACE/ZL SAVE</span>
+            <span>ESC/B BACK</span>
+        </div>
+    </div>
+
+    <!-- Machine-readable spec for Variant A -->
+    <pre id='spec-A' type='application/json'>
+{
+  "variant_name": "List View (A)",
+  "layout": {
+    "screen_width": "1280px",
+    "screen_height": "768px",
+    "left_folio_width_ratio": "0.4",
+    "right_folio_width_ratio": "0.6",
+    "gutter_width": "16px",
+    "footer_height": "40px"
+  },
+  "elements": {
+    "card_list_item": {
+      "row_pitch": "44px", /* 40px thumbnail + 4px padding-y * 2 */
+      "font_size": "15px",
+      "padding": "4px",
+      "thumbnail_size": "40px",
+      "focus_treatment": "outline: 1px solid var(--accent); background-color: var(--folio-shade); color: var(--accent);",
+      "hover_treatment": "same as focus",
+      "in_deck_count_style": "background-color: var(--binding-dark); color: var(--folio-light); padding: 2px 6px; border-radius: 3px;"
+    },
+    "cost_filter_button": {
+        "tap_target_height": ">=28px",
+        "font_size": "12px",
+        "padding": "4px 8px"
+    },
+    "category_tab_button": {
+        "tap_target_height": ">=28px",
+        "font_size": "12px",
+        "padding": "4px 8px"
+    },
+    "action_bar_button": {
+      "min_height": "28px",
+      "font_size": "15px",
+      "padding": "8px 16px",
+      "border_radius": "5px"
+    },
+    "cost_curve_bar": {
+        "label_font_size": "12px",
+        "bar_height_base": "80px"
+    }
+  },
+  "paging_behavior": "Scrollable Y-axis for card-list-container and deck-list-container. No explicit paging buttons designed for this variant, relies on browser scroll.",
+  "font_families": {
+    "display": "Crimson Pro",
+    "labels": "Alegreya Sans SC",
+    "body": "Crimson Pro"
+  },
+  "colors": {
+    "foreground": "var(--folio-gutter, #5A4628)",
+    "accent": "#d4af37"
+  }
+}
+    </pre>
+
+    <!-- Machine-readable spec for Variant B -->
+    <pre id='spec-B' type='application/json'>
+{
+  "variant_name": "Grid View (B)",
+  "layout": {
+    "screen_width": "1280px",
+    "screen_height": "768px",
+    "left_folio_width_ratio": "0.4",
+    "right_folio_width_ratio": "0.6",
+    "gutter_width": "16px",
+    "footer_height": "40px"
+  },
+  "elements": {
+    "grid_card": {
+      "width": "120px", /* Example size */
+      "height": "160px",
+      "card_art_placeholder_size": "100px x 100px",
+      "name_overlay_font_size": "14px",
+      "cost_overlay_font_size": "12px",
+      "in_deck_overlay_font_size": "12px",
+      "focus_treatment": "outline: 2px solid var(--accent);",
+      "hover_treatment": "scale(1.05); box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);",
+      "tap_target_size": "full card"
+    },
+    "cost_filter_button": {
+        "tap_target_height": ">=28px",
+        "font_size": "12px",
+        "padding": "4px 8px"
+    },
+    "category_tab_button": {
+        "tap_target_height": ">=28px",
+        "font_size": "12px",
+        "padding": "4px 8px"
+    },
+    "action_bar_button": {
+      "min_height": "28px",
+      "font_size": "1--text-small-size",
+      "padding": "8px 16px",
+      "border_radius": "5px"
+    },
+    "cost_curve_bar": {
+        "label_font_size": "12px",
+        "bar_height_base": "80px"
+    }
+  },
+  "paging_behavior": "Grid scrollable X/Y-axis for card-grid-container. No explicit paging buttons designed for this variant.",
+  "font_families": {
+    "display": "Crimson Pro",
+    "labels": "Alegreya Sans SC",
+    "body": "Crimson Pro"
+  },
+  "colors": {
+    "foreground": "var(--folio-gutter, #5A4628)",
+    "accent": "#d4af37"
+  }
+}
+    </pre>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const variantSwitcher = document.getElementById('variant-switcher');
+            const variantContents = document.querySelectorAll('.variant-content');
+
+            variantSwitcher.addEventListener('click', (event) => {
+                if (event.target.tagName === 'BUTTON') {
+                    const selectedVariantId = event.target.dataset.variant;
+
+                    variantContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === 'variant-' + selectedVariantId) {
+                            content.classList.add('active');
+                        }
+                    });
+
+                    variantSwitcher.querySelectorAll('button').forEach(button => {
+                        button.classList.remove('active');
+                    });
+                    event.target.classList.add('active');
+                }
+            });
+
+            // Initial state: ensure Variant A is active and its button is active
+            document.getElementById('variant-A').classList.add('active');
+            variantSwitcher.querySelector('button[data-variant="A"]').classList.add('active');
+
+             // Add simple keyboard navigation for card list in Variant A for demonstration
+             const cardListA = document.querySelector('#variant-A .card-list');
+             let focusedItemA = cardListA ? cardListA.querySelector('.card-list-item.focused') : null;
+
+             if (cardListA && !focusedItemA) {
+                 focusedItemA = cardListA.querySelector('.card-list-item');
+                 if (focusedItemA) focusedItemA.classList.add('focused');
+             }
+
+             // Add simple keyboard navigation for card grid in Variant B for demonstration
+             const cardGridB = document.querySelector('#variant-B .card-grid');
+             let focusedItemB = cardGridB ? cardGridB.querySelector('.grid-card.focused') : null;
+
+             if (cardGridB && !focusedItemB) {
+                 focusedItemB = cardGridB.querySelector('.grid-card');
+                 if (focusedItemB) focusedItemB.classList.add('focused');
+             }
+
+             document.addEventListener('keydown', (e) => {
+                 if (document.getElementById('variant-A').classList.contains('active') && focusedItemA) {
+                     const items = Array.from(cardListA.children);
+                     let currentIndex = items.indexOf(focusedItemA);
+
+                     if (e.key === 'ArrowDown') {
+                         e.preventDefault();
+                         if (currentIndex < items.length - 1) {
+                             focusedItemA.classList.remove('focused');
+                             focusedItemA = items[currentIndex + 1];
+                             focusedItemA.classList.add('focused');
+                             focusedItemA.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                         }
+                     } else if (e.key === 'ArrowUp') {
+                         e.preventDefault();
+                         if (currentIndex > 0) {
+                             focusedItemA.classList.remove('focused');
+                             focusedItemA = items[currentIndex - 1];
+                             focusedItemA.classList.add('focused');
+                             focusedItemA.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                         }
+                     }
+                 } else if (document.getElementById('variant-B').classList.contains('active') && focusedItemB) {
+                     const items = Array.from(cardGridB.children);
+                     const gridComputedStyle = window.getComputedStyle(cardGridB);
+                     // Dynamically determine grid column count by dividing the grid's width by item's width (including gap)
+                     // This is a simplification; a more robust solution would read grid-template-columns computed value.
+                     // For this demo, let's assume a consistent item width within the grid.
+                     const cardWidth = 100; // Based on .grid-card width: 100px
+                     const gap = 8; // Based on gap: var(--spacing-sm);
+                     const containerWidth = cardGridB.offsetWidth; // Get actual rendered width
+                     // A more robust way to get column count from grid-template-columns CSS property
+                     // would involve parsing its computed value, but for simplicity, we'll use this estimate.
+                     // The repeat(auto-fill, minmax(100px, 1fr)) makes it hard to get an exact dynamic count reliably without more complex JS
+                     // For a fixed width setup, we can approximate.
+                     // Let's assume there are always 3 columns for 100px cards + 8px gap based on a 40% folio width.
+                     // This is a rough estimation for the demo; in a real app, this would be derived from CSS layout queries.
+                     let gridColumns = Math.floor(cardGridB.clientWidth / (cardWidth + gap));
+                     if (gridColumns === 0) gridColumns = 1; // Avoid division by zero if container is too small
+
+                     let currentIndex = items.indexOf(focusedItemB);
+
+                     if (e.key === 'ArrowDown') {
+                         e.preventDefault();
+                         if (currentIndex + gridColumns < items.length) {
+                             focusedItemB.classList.remove('focused');
+                             focusedItemB = items[currentIndex + gridColumns];
+                             focusedItemB.classList.add('focused');
+                             focusedItemB.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                         }
+                     } else if (e.key === 'ArrowUp') {
+                         e.preventDefault();
+                         if (currentIndex - gridColumns >= 0) {
+                             focusedItemB.classList.remove('focused');
+                             focusedItemB = items[currentIndex - gridColumns];
+                             focusedItemB.classList.add('focused');
+                             focusedItemB.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                         }
+                     } else if (e.key === 'ArrowRight') {
+                         e.preventDefault();
+                         if (currentIndex % gridColumns < gridColumns - 1 && currentIndex < items.length -1) {
+                             focusedItemB.classList.remove('focused');
+                             focusedItemB = items[currentIndex + 1];
+                             focusedItemB.classList.add('focused');
+                             focusedItemB.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                         }
+                     } else if (e.key === 'ArrowLeft') {
+                         e.preventDefault();
+                         if (currentIndex % gridColumns > 0) {
+                             focusedItemB.classList.remove('focused');
+                             focusedItemB = items[currentIndex - 1];
+                             focusedItemB.classList.add('focused');
+                             focusedItemB.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                         }
+                     }
+                 }
+             });
+        });
+    </script>
+    <section style="max-width:1280px;margin:24px auto;padding:0 12px">
+        <h2 style="font-family:'Alegreya Sans SC',sans-serif;color:#d9a23c;font-size:20px;margin-bottom:12px">SHIPPED — what the canvas became in-game (1280×768 native capture)</h2>
+        <img src="shots/pd-deckbuilder-1280x768.png" alt="The shipped deck builder screen: search, cost chips, tab chip grid, windowed card list with art thumbnails and focus plate, deck panel with cost curve and action buttons" style="width:100%;display:block">
+        <p style="font-family:sans-serif;color:#8a8a80;font-size:13px;margin-top:8px">List rows are a window that scrolls with the keyboard focus (120 cards never fit 768 px at a legible pitch — the collapse of that pitch was the old screen's bug). Tab/cost chips are mouse targets; the focused row gets the shared gold-plate focus cue.</p>
+    </section>
+</body>
+</html>
