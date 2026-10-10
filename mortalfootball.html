@@ -587,6 +587,10 @@
     <div class="gallery" id="mf-gallery">
       <!-- NEW SHOT: append <figure> here as builds land -->
       <figure>
+        <img src="shots/mf-camera-tight-640x480.png" alt="Broadcast tight camera — one of three switchable vantages (wide / medium / tight)">
+        <figcaption>Broadcast tight — three TV camera presets now (wide, medium, tight), WE2000 style.</figcaption>
+      </figure>
+      <figure>
         <img src="shots/mf-camera-medium-640x480.gif" alt="Live 11-v-11 match at the new medium TV camera — real engine capture, 10 fps, one full attacking sequence">
         <figcaption>Camera presets live: wide / medium / tight. This is the medium vantage — the WE2000-style TV cam — running a live 11-v-11 match: players moving, ball in play, HUD and radar as the player sees them.</figcaption>
       </figure>
@@ -666,7 +670,19 @@
         <figcaption>M0.6 · PS1 renderer live — 320×240 internal, 15-bit dither, fog, vertex snap (captured from the real build)</figcaption>
       </figure>
     </div>
+  <section id="sound">
+    <h2>Sound — procedural, from the game's own synth</h2>
+    <p>Every cue is generated from code at boot (sine/noise/envelope primitives, no samples). These are the engine's actual outputs:</p>
+    <ul class="soundlist">
+      <li><audio controls preload="none" src="sound/Whistle.wav"></audio> Whistle — kickoff / half-time / full-time</li>
+      <li><audio controls preload="none" src="sound/Kick.wav"></audio> Kick — struck ball</li>
+      <li><audio controls preload="none" src="sound/Crunch.wav"></audio> Crunch — big tackle impact</li>
+      <li><audio controls preload="none" src="sound/KaChing.wav"></audio> Ka-ching — injury-point claim banked</li>
+      <li><audio controls preload="none" src="sound/Horn.wav"></audio> Horn — goal</li>
+      <li><audio controls preload="none" src="sound/Crowd.wav"></audio> Crowd — procedural bed (looped in-game)</li>
+    </ul>
   </section>
+</section>
 
   <footer>
     MORTAL FUTBOL · CONCEPT MOCKUPS · FOR FUNDING DISCUSSION
