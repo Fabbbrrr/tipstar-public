@@ -73,17 +73,18 @@
             height: 100%;
             width: 100%;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             background-color: var(--desk-deep); /* Outer background */
             font-family: var(--font-body);
             color: var(--foreground);
             line-height: var(--line-height-base);
-            overflow: hidden; /* Ensure no scrollbars on the main viewport */
+            overflow: auto; /* allow scrolling to the section below the canvas */
         }
 
         #screen-container {
             width: 1280px;
+            zoom: min(1, calc(100vw / 1300)); /* fit fixed canvas on phones */
             height: 768px;
             display: flex;
             flex-direction: column;
