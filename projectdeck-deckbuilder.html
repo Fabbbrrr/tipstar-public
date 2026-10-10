@@ -104,11 +104,12 @@
             gap: var(--spacing-sm);
         }
         @media (max-width: 700px) {
-            /* fit the fixed 1280px canvas on a ~390px phone; zoom the whole body so the lower sections fit too */
-            body { zoom: 0.32; align-items: flex-start; padding: 12px 0 32px; }
-            #screen-container { zoom: 1; margin: 0 auto; }
-            #variant-switcher { gap: 24px; }
-            #variant-switcher button[data-variant] { font-size: 72px; padding: 40px 80px; } /* ~44px tap target after the 0.32 zoom; specificity beats the base rule below */
+            /* fit the fixed 1280px canvas on a phone: zoom on the container (zoom doesn't take calc()),
+               left-align so nothing is clipped (flex-centred overflow is unreachable), switcher sized against the ~0.3 scale */
+            body { align-items: flex-start; padding: 12px 0 32px; }
+            #screen-container { zoom: 0.3; margin-left: 0; }
+            #variant-switcher { gap: 20px; left: 20px; transform: none; }
+            #variant-switcher button[data-variant] { font-size: 140px; padding: 50px 90px; } /* ~44px tap after the 0.3 zoom; specificity beats the base rule */
         }
 
         #variant-switcher button {
