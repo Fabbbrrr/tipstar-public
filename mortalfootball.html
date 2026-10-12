@@ -620,7 +620,20 @@
         <figcaption>Same seed, same camera, moments before the goal — the idle stand for comparison (2,090 px of shimmer between the two).</figcaption>
       </figure>
 
-                        <figure>
+                              <figure>
+        <img src="shots/mf-ball-before-x4.png" alt="Ball before &mdash; crushed dark read at play distance">
+        <figcaption>V3 before &mdash; the ball wasn&#39;t painted black: a sparse 16&times;16 code tex at ~5&nbsp;px on screen samples arbitrary texels, so it read crushed. The brightness fix is a real CC0 leather bake.</figcaption>
+      </figure>
+      <figure>
+        <img src="shots/mf-ball-after-x4.png" alt="Ball after &mdash; bright leather bake through the seam">
+        <figcaption>V3 after &mdash; CC0 leather bake through the texture seam. Panel-seam detail is capped by 5&nbsp;px of pixel budget at this resolution; V4 (960&times;720) is where it pays.</figcaption>
+      </figure>
+      <figure>
+        <img src="shots/mf-player-kit-x4.png" alt="Player after kit texture page &mdash; part separation via atlas cells">
+        <figcaption>V3 kit pass &mdash; one 512 atlas (weave &times; club colours + skin cells), UV-region pick per part; H7 numbers kept. Critic-verified: cleaner part separation, weave needs the V4 res.</figcaption>
+      </figure>
+
+<figure>
         <img src="shots/mf-getup-640x480.png" alt="Knock-down victims now get up and play on &mdash; the standing player rose on his own; the body still down is the sent-off butcher">
         <figcaption>V8 &mdash; PLAN &sect;264 finally built: knock-down victims get up after a short delay and re-engage; serious injuries still get the claim/stretcher beat (that part of the game is untouched). The victim here rose on his own &mdash; the body beside him is the sent-off butcher, staying down by design.</figcaption>
       </figure>
