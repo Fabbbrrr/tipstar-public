@@ -620,7 +620,16 @@
         <figcaption>Same seed, same camera, moments before the goal — the idle stand for comparison (2,090 px of shimmer between the two).</figcaption>
       </figure>
 
-                              <figure>
+                                    <figure>
+        <img src="shots/mf-midfield-960.png" alt="The new 960x720 render class &mdash; midfield, seed 7">
+        <figcaption>V4 &mdash; the 960&times;720 class as live default (3&times; the 320 base, 4:3 kept, snap grid follows the class). ~14% of pixels genuinely differ from an upscaled 640 &mdash; a real render grid, not a blit. Perf: draw p95 1.52&nbsp;ms vs 1.50 at 640 &mdash; not fill-bound.</figcaption>
+      </figure>
+      <figure>
+        <img src="shots/mf-640-class-ref.png" alt="Same seed, same frame at the old 640 class &mdash; the reference pair for the 960 shot">
+        <figcaption>The 640 reference pair for the shot above &mdash; same seed, same frame; the control star's possession-yellow cluster measures in both (the yellow in the bottom strip is the hint overlay).</figcaption>
+      </figure>
+
+<figure>
         <img src="shots/mf-ball-before-x4.png" alt="Ball before &mdash; crushed dark read at play distance">
         <figcaption>V3 before &mdash; the ball wasn&#39;t painted black: a sparse 16&times;16 code tex at ~5&nbsp;px on screen samples arbitrary texels, so it read crushed. The brightness fix is a real CC0 leather bake.</figcaption>
       </figure>
