@@ -587,6 +587,10 @@
     <div class="gallery" id="mf-gallery">
       <!-- NEW SHOT: append <figure> here as builds land -->
       <figure>
+        <img src="shots/menu-boot-4x.png" alt="Main menu on a plain launch &mdash; START MATCH, OPTIONS, CONTROLS, CREDITS, QUIT GAME from the real build">
+        <figcaption>Main menu, 2026-10-14 &mdash; a plain double-click of the exe now boots straight here, under a readable all-caps title with START MATCH / OPTIONS / CONTROLS / CREDITS / QUIT GAME and A CONFIRM / B BACK. Before this fix the default launch fell through to an empty scene and painted a black window (measured: 1 colour); now it paints the menu (15 colours). CONTROLS and CREDITS are new this pass &mdash; CREDITS carries the exact CC&nbsp;BY attributions for the shipped assets, asserted against THIRD-PARTY-NOTICES. Music is on by default too (was gated behind an env flag). Real build, 4&times; nearest-neighbour from the 960&times;720 capture.</figcaption>
+      </figure>
+      <figure>
         <img src="shots/mf-640-hud-cards-stamina.png" alt="Match HUD, 640x480 &mdash; kickoff with the scoreband, IP line, cards column and stamina bar, brighter ball on the spot">
         <figcaption>Match HUD, 640&times;480 &mdash; later in the 2026-10-14 pass: the scoreband + dual-victory IP line, team CARD tallies under the radar and the controlled player's STAMINA bar, plus the ball brightened so it reads on grass (bake gain 1.5&rarr;1.7; measured ball-vs-turf luma gap +59&rarr;+89). Measured 71,828&nbsp;px changed vs the earlier HUD shot at the same seed/frame. Real build, not a mock.</figcaption>
       </figure>
