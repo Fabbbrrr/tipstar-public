@@ -587,6 +587,14 @@
     <div class="gallery" id="mf-gallery">
       <!-- NEW SHOT: append <figure> here as builds land -->
       <figure>
+        <img src="shots/mf-960-match-formlight-2x.png" alt="Match frame after the form-lighting pass &mdash; mown stripes visible on the pitch, brighter turf, readable ball and players">
+        <figcaption>Match, 2026-10-14 late &mdash; the form-lighting pass. The pitch was one flat quad lit by a near-vertical light that made every vertical face the same tone and blew the tops to pure white; the light is now oblique and shades as <code>Ambient + (1-Ambient)*ndl</code>, which cannot exceed 1.0, so the figure reads <strong>26 distinct tones instead of 13</strong> with <strong>0% blown white instead of 31.9%</strong>. That fix darkened everything, so the ground layer got its own exposure floor: grass measured <strong>156.9 luma (over-lit) &rarr; 76.7 (too dark) &rarr; 114.3 (now)</strong> in the real frame. Mown stripes were separately re-aimed along the axis that survives the affine-UV clamp (render-distance stripe amplitude 3.33% &rarr; 8.87%). Real build, game window, 2&times; nearest-neighbour. A vision critic on this frame: &ldquo;bright enough&rdquo;, grass / markings / players / ball all clear.</figcaption>
+      </figure>
+      <figure>
+        <img src="shots/mf-player-formlight-4x.png" alt="Single player at 4x &mdash; tapered torso, rounded limbs, shaped boot, three separated tone levels per part">
+        <figcaption>Player detail, 4&times; &mdash; the same figure that the flat lighting used to render as a featureless block now carries a tapered torso (shoulders wider than waist), 8-sided limbs and a shaped boot, and each part shows separated tone levels. Geometry went <strong>576 &rarr; 1686 vertices</strong> (192 &rarr; 562 triangles) behind the <em>same</em> parts/rig API, so injury, ragdoll and the gait animation are untouched; face normals were fixed at the root (a tapered part&rsquo;s widest ring was only present as cap-rim vertices).</figcaption>
+      </figure>
+      <figure>
         <img src="shots/menu-boot-4x.png" alt="Main menu on a plain launch &mdash; START MATCH, OPTIONS, CONTROLS, CREDITS, QUIT GAME from the real build">
         <figcaption>Main menu, 2026-10-14 &mdash; a plain double-click of the exe now boots straight here, under a readable all-caps title with START MATCH / OPTIONS / CONTROLS / CREDITS / QUIT GAME and A CONFIRM / B BACK. Before this fix the default launch fell through to an empty scene and painted a black window (measured: 1 colour); now it paints the menu (15 colours). CONTROLS and CREDITS are new this pass &mdash; CREDITS carries the exact CC&nbsp;BY attributions for the shipped assets, asserted against THIRD-PARTY-NOTICES. Music is on by default too (was gated behind an env flag). Real build, 4&times; nearest-neighbour from the 960&times;720 capture.</figcaption>
       </figure>
