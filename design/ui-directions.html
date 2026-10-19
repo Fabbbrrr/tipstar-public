@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Three layout directions for the simhublink control UI, shown at phone and desktop widths. Pick one.">
+<title>simhublink — UI directions</title>
+<style>
+/* ── TOKENS ─────────────────────────────────────────────────────────────
+   The only place a colour, size or radius is written. Components reference
+   tokens. Revision 2 is a change here, not fifteen edits below.              */
+:root{
+  /* palette — host vars win when the preview rail injects them; the
+     fallbacks are what a standalone browser (and a phone) actually see. */
+  --bg:            var(--background, #0f1216);
+  --surface:       var(--card, #171c23);
+  --surface-2:     #1e242d;
+  --line:          var(--border, #2a323e);
+  --text:          var(--foreground, #e6ebf2);
+  --text-dim:      #93a1b3;
+  --text-faint:    #7e90a9;   # was #64748b — measured 3.3-4.1:1, failed AA
+
+  --link-up:       #3ddc97;   /* the link is doing its job            */
+  --link-degraded: #f2b03d;   /* dropping chunks, or behind on rate  */
+  --link-down:     #f2565b;   /* no data, or the rig agent is gone   */
+  --accent:        var(--accent, #5aa2ff);   /* actions you can take  */
+
+  /* type */
+  --f-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-num: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --t-hero: 1.35rem; --t-h: 1rem; --t-body: .9rem; --t-sm: .78rem; --t-num: 1.5rem;
+  --lh: 1.45;
+
+  /* space + shape */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
+  --r-sm: 6px; --r: 10px; --r-lg: 14px;
+  --tap: 44px;                 /* touch target floor — the phone is a real client */
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--f-ui);line-height:var(--lh);padding:var(--s5)}
+h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.01em}
+.page-head{margin-bottom:var(--s5)}
+.page-head p{color:var(--text-dim);font-size:var(--t-body);margin:var(--s2) 0 0;max-width:70ch}
+
+.dir{margin-bottom:var(--s6);border-top:1px solid var(--line);padding-top:var(--s5)}
+.dir-head{display:flex;align-items:baseline;gap:var(--s3);flex-wrap:wrap;margin-bottom:var(--s2)}
+.dir-head h2{font-size:var(--t-h)}
+.dir-head .note{color:var(--text-dim);font-size:var(--t-sm);flex:1 1 40ch}
+button.pick{font:inherit;font-size:var(--t-sm);color:#0b0e12;background:var(--accent);border:0;border-radius:var(--r-sm);padding:var(--s2) var(--s4);min-height:var(--tap);cursor:pointer;font-weight:600}
+button.pick.secondary{background:transparent;color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+
+.pair{display:flex;gap:var(--s5);align-items:flex-start;flex-wrap:wrap;margin-top:var(--s4)}
+.frame{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--s4);display:flex;flex-direction:column;gap:var(--s3)}
+.phone{width:390px}
+.desk{width:760px}
+.tag{font:var(--t-sm)/1 var(--f-num);color:var(--text-faint);letter-spacing:.04em}
+
+/* status */
+.status{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;padding:var(--s3);background:var(--surface-2);border-radius:var(--r)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.up{background:var(--link-up)} .deg{background:var(--link-degraded)} .down{background:var(--link-down)}
+.status b{font-size:var(--t-body)}
+.stat{display:flex;flex-direction:column;gap:2px;padding-left:var(--s3);border-left:1px solid var(--line)}
+.stat span{font:600 1.05rem/1 var(--f-num);color:var(--text)}
+.stat em{font-style:normal;font-size:var(--t-sm);color:var(--text-faint)}
+
+/* log */
+.log{background:#0b0e12;border:1px solid var(--line);border-radius:var(--r);padding:var(--s3);font-family:var(--f-num);font-size:var(--t-sm);display:flex;flex-direction:column;gap:3px;min-height:120px}
+.l{display:flex;gap:var(--s2);align-items:baseline}
+.l .ts{color:var(--text-faint);flex:none}
+.l .src{flex:none;min-width:52px}
+.l.rig .src{color:#c792ea} .l.reader .src{color:var(--accent)}
+.l.warn .msg{color:var(--link-degraded)} .l.err .msg{color:var(--link-down)}
+.tabs{display:flex;gap:var(--s2)}
+.tab{font-size:var(--t-sm);padding:var(--s2) var(--s3);border-radius:var(--r-sm);background:transparent;color:var(--text-dim);border:1px solid var(--line);min-height:36px;cursor:pointer}
+.tab[aria-selected=true]{background:var(--surface-2);color:var(--text);border-color:var(--text-faint)}
+
+/* controls */
+.ctrls{display:flex;gap:var(--s2);flex-wrap:wrap}
+.chip{font-size:var(--t-sm);padding:var(--s2) var(--s3);border-radius:var(--r-sm);background:var(--surface-2);color:var(--text);border:1px solid var(--line);min-height:var(--tap);min-width:var(--tap);cursor:pointer;display:inline-flex;align-items:center;gap:var(--s2)}
+.chip.here{box-shadow:inset 0 0 0 1px var(--accent);color:var(--accent)}
+.chip[disabled]{color:var(--text-faint);cursor:not-allowed}
+.hint{font-size:var(--t-sm);color:var(--text-dim);margin:0}
+.hint a{color:var(--accent)}
+
+/* direction-specific: B stacks cards, C splits */
+.cards{display:flex;gap:var(--s3);flex-wrap:wrap}
+.card{flex:1 1 200px;background:var(--surface-2);border-radius:var(--r);padding:var(--s3);display:flex;flex-direction:column;gap:var(--s2)}
+.card h3{font-size:var(--t-sm);color:var(--text-dim);font-weight:500}
+.card .big{font:var(--t-num)/1.1 var(--f-num)}
+.split{display:flex;gap:var(--s4);align-items:flex-start;flex-wrap:wrap}
+.split>.side{flex:1 1 240px;display:flex;flex-direction:column;gap:var(--s3)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+</style>
+</head>
+<body>
+<main>
+<div class="page-head">
+  <h1>simhublink — three directions</h1>
+  <p>All three show the honest capability set: what is measured is shown as measured, and what only SimHub can do links out to SimHub. Phone and desktop are the same app at two widths, not two apps.</p>
+</div>
+
+<!-- ══════════════ A — CONSOLE: log-first ══════════════ -->
+<section class="dir">
+  <div class="dir-head">
+    <h2>A · Console — the log is the page</h2>
+    <p class="note">Best if you mostly watch it. Status pinned on top, the stream fills the screen, controls are one row of taps. Everything visible at once on a phone without scrolling.</p>
+    <button class="pick" data-hermes-send="Pick direction A (console, log-first) for the simhublink UI">Pick A</button>
+  </div>
+  <div class="pair">
+    <div class="frame phone"><span class="tag">PHONE · 390</span>
+      <div class="status"><span class="dot up"></span><b>link up</b><span style="color:var(--text-dim)">· ac1</span>
+        <span class="stat"><span>3.1<span style="font-size:.6em">ms</span></span><em>p95</em></span>
+        <span class="stat"><span>0</span><em>dropped</em></span></div>
+      <div class="ctrls"><button class="chip here">ac1</button><button class="chip">acc</button><button class="chip">ams2</button><button class="chip">gt7</button></div>
+      <div class="log" aria-label="live log"><div class="l reader"><span class="ts">23:41:07</span><span class="src">reader</span><span class="msg">ac1 acpmf_graphics → 60 Hz</span></div>
+        <div class="l rig"><span class="ts">23:41:07</span><span class="src">rig</span><span class="msg">stub acs.exe respawned</span></div>
+        <div class="l warn"><span class="ts">23:41:06</span><span class="src">rig</span><span class="msg">chunk 3/12 late, snapshot continues</span></div></div>
+      <p class="hint"><a href="#">SimHub dashboard (profiles live there) →</a></p>
+    </div>
+    <div class="frame desk"><span class="tag">DESKTOP · 760</span>
+      <div class="status"><span class="dot up"></span><b>link up</b><span style="color:var(--text-dim)">· ac1 · reader on this machine, rig 192.168.50.245</span>
+        <span class="stat"><span>3.1<span style="font-size:.6em">ms</span></span><em>p95</em></span><span class="stat"><span>8.9<span style="font-size:.6em">ms</span></span><em>p99</em></span><span class="stat"><span>0</span><em>dropped</em></span><span class="stat"><span>0</span><em>malformed</em></span></div>
+      <div class="ctrls"><button class="chip here">ac1</button><button class="chip">ac-evo</button><button class="chip">acc</button><button class="chip">iracing</button><button class="chip">lmu</button><button class="chip">ams2</button><button class="chip">gt7</button></div>
+      <div class="log"><div class="l reader"><span class="ts">23:41:07</span><span class="src">reader</span><span class="msg">ac1 acpmf_graphics → 60 Hz · 60/60 emitted</span></div>
+        <div class="l rig"><span class="ts">23:41:07</span><span class="src">rig</span><span class="msg">stub acs.exe respawned (job object, 3 live)</span></div>
+        <div class="l reader"><span class="ts">23:41:06</span><span class="src">reader</span><span class="msg">sent 12 datagrams · queue depth 0</span></div>
+        <div class="l warn"><span class="ts">23:41:06</span><span class="src">rig</span><span class="msg">chunk 3/12 late by 41 ms, snapshot continues</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ B — DECK: numbers first ══════════════ -->
+<section class="dir">
+  <div class="dir-head">
+    <h2>B · Deck — numbers first, log below</h2>
+    <p class="note">Best if you want the health of each machine at a glance from across the room on the tablet. Cards carry the diagnosis; the log is a tab rather than the hero.</p>
+    <button class="pick" data-hermes-send="Pick direction B (deck, numbers-first) for the simhublink UI">Pick B</button>
+  </div>
+  <div class="pair">
+    <div class="frame phone"><span class="tag">PHONE · 390</span>
+      <div class="cards">
+        <div class="card"><h3>this machine · reader</h3><div class="big" style="color:var(--link-up)">60<span style="font-size:.45em"> Hz</span></div><span class="tag">emitted, held</span></div>
+        <div class="card"><h3>rig · 192.168.50.245</h3><div class="big" style="color:var(--link-up)">60<span style="font-size:.45em"> Hz</span></div><span class="tag">received complete · p95 3.1 ms</span></div></div>
+      <div class="ctrls"><button class="chip here">ac1</button><button class="chip">acc</button><button class="chip">ams2</button><button class="chip" disabled>gt7 (UDP)</button></div>
+      <div class="tabs"><button class="tab" aria-selected="true">Log</button><button class="tab">Settings</button><button class="tab">SimHub ↗</button></div>
+      <div class="log" aria-label="live log"><div class="l rig"><span class="ts">23:41:07</span><span class="src">rig</span><span class="msg">SimHub picked ac1 without being told</span></div>
+        <div class="l reader"><span class="ts">23:41:06</span><span class="src">reader</span><span class="msg">ac1 acpmf_physics → 60 Hz</span></div></div>
+    </div>
+    <div class="frame desk"><span class="tag">DESKTOP · 760</span>
+      <div class="cards">
+        <div class="card"><h3>this machine · reader</h3><div class="big" style="color:var(--link-up)">60<span style="font-size:.45em"> Hz</span></div><span class="tag">60/60 · queue 0 · drops 0</span></div>
+        <div class="card"><h3>rig · 192.168.50.245</h3><div class="big" style="color:var(--link-up)">60<span style="font-size:.45em"> Hz</span></div><span class="tag">complete 3.4k · p95 3.1 ms · p99 8.9 ms</span></div>
+        <div class="card"><h3>licence gate</h3><div class="big">60<span style="font-size:.45em"> Hz</span></div><span class="tag">unlicensed = 10 Hz</span></div></div>
+      <div class="ctrls"><button class="chip here">ac1</button><button class="chip">ac-evo</button><button class="chip">acc</button><button class="chip">iracing</button><button class="chip">lmu</button><button class="chip">ams2</button><button class="chip">gt7</button></div>
+      <div class="tabs"><button class="tab" aria-selected="true">Log</button><button class="tab">Settings</button><button class="tab">SimHub dashboard ↗</button></div>
+      <div class="log"><div class="l rig"><span class="ts">23:41:07</span><span class="src">rig</span><span class="msg">SimHub picked ac1 without being told</span></div>
+        <div class="l reader"><span class="ts">23:41:06</span><span class="src">reader</span><span class="msg">ac1 acpmf_physics → 60 Hz · 60/60</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ C — SPLIT: operator layout ══════════════ -->
+<section class="dir">
+  <div class="dir-head">
+    <h2>C · Split — controls left, log right</h2>
+    <p class="note">Best on a desktop or tablet in landscape. Collapses to stacked on a phone, where the controls move above the log so your thumb reaches them.</p>
+    <button class="pick secondary" data-hermes-send="Pick direction C (split operator layout) for the simhublink UI">Pick C</button>
+  </div>
+  <div class="pair">
+    <div class="frame phone"><span class="tag">PHONE · 390</span>
+      <div class="status"><span class="dot up"></span><b>ac1</b><span style="color:var(--text-dim)">· both ends up</span><span class="stat"><span>3.1</span><em>p95 ms</em></span></div>
+      <div class="ctrls"><button class="chip here">ac1</button><button class="chip">acc</button><button class="chip">ams2</button></div>
+      <div class="log" aria-label="live log"><div class="l reader"><span class="ts">23:41:07</span><span class="src">reader</span><span class="msg">measured acpmf_physics 9312 B, config agrees</span></div>
+        <div class="l rig"><span class="ts">23:41:07</span><span class="src">rig</span><span class="msg">elevation matches SimHub’s</span></div></div>
+    </div>
+    <div class="frame desk"><span class="tag">DESKTOP · 760</span>
+      <div class="split">
+        <div class="side"><span class="tag">CONTROLS</span>
+          <div class="ctrls" style="flex-direction:column;align-items:stretch"><button class="chip here">ac1 — running</button><button class="chip">ac-evo</button><button class="chip">acc</button><button class="chip">iracing</button><button class="chip">lmu</button><button class="chip">ams2</button><button class="chip">gt7 (UDP, no stub)</button></div>
+          <p class="hint">profiles are bound once, in <a href="#">SimHub’s own dashboard</a> — we can switch, not restyle</p></div>
+        <div class="side" style="flex:2 1 340px"><span class="tag">LOG — both machines, merged</span>
+          <div class="log"><div class="l reader"><span class="ts">23:41:07</span><span class="src">reader</span><span class="msg">measured acpmf_physics 9312 B, config agrees</span></div>
+            <div class="l rig"><span class="ts">23:41:07</span><span class="src">rig</span><span class="msg">elevation matches SimHub’s</span></div>
+            <div class="l reader"><span class="ts">23:41:06</span><span class="src">reader</span><span class="msg">sent 12 datagrams · queue depth 0</span></div>
+            <div class="l warn"><span class="ts">23:41:05</span><span class="src">rig</span><span class="msg">chunk late by 41 ms, snapshot continues</span></div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+</body>
+</html>
