@@ -851,36 +851,36 @@
   <section class="section">
     <div class="section-head"><h2>PLAYER DETAIL</h2><span class="n">08</span></div>
     <div class="pitch-block">
-      <p>The detail pass, captured at 1080p &mdash; the virtual 960&times;720 render pinned into a 1920&times;1080 backbuffer and letterboxed at 1.5&times; nearest into the rect (240,0,1440,1080). Not a 320&times;240 upscale. Same deterministic sim throughout, seed 402.</p>
+      <p>The detail pass, captured at 1080p &mdash; the virtual 640&times;480 render pinned into a 1920&times;1080 backbuffer and letterboxed at 2.25&times; nearest into the rect (240,0,1440,1080). Not a 320&times;240 upscale. Same deterministic sim throughout, seed 402.</p>
     </div>
     <div class="gallery">
       <figure>
-        <video controls muted loop playsinline src="shots/mf-p4-play.mp4" alt="Mortal Futbol gameplay &mdash; a take, a foul, and the referee's deferred call"></video>
+        <video controls muted loop playsinline src="shots/mf-p4b-play.mp4" alt="Mortal Futbol gameplay &mdash; a take, a foul, and the referee's deferred call"></video>
         <figcaption>Gameplay, 2026-10-20 &mdash; 261 frames at 60&nbsp;fps (4.35&nbsp;s), 1920&times;1080 H.264. One coherent sim, one process: <strong>take at frame 540</strong>, <strong>foul at 617</strong>, <strong>whistle and card at 646</strong>. The call arrives <strong>29 frames after the incident</strong> &mdash; the referee's deferred gate, not an instant whistle.</figcaption>
       </figure>
       <figure>
-        <img src="shots/mf-p4-players-1080.png" alt="A player seen from behind at close vantage &mdash; hair mass, nape, jersey shoulders, both hands, shirt number, ball at his boots">
-        <figcaption>Players, 2026-10-20 &mdash; the back reads as a person now: a <strong>hair mass</strong> over the head, the nape under it, jersey shoulders with the sleeve seam, both hands at his sides, the number 4 on his back, the ball at his boots. Close vantage (camera 7&nbsp;m behind the ball, 3&nbsp;m up) so the detail is legible; the referee and his cloud are in the same frame.</figcaption>
+        <img src="shots/mf-p4b-players-1080.png" alt="A player seen from behind &mdash; hair mass, nape, jersey shoulders, arms, the white number plate on his back; the referee stands over the ball">
+        <figcaption>Players, 2026-10-20 &mdash; the back reads as a person now: a <strong>hair mass</strong> over the head, the nape under it, jersey shoulders with the yoke seam and both sleeves, the arms hanging clear of the torso, the white number plate on his back. The plate's fill and its ring render the same white, so the digit reads as a silhouette, not a glyph. The referee walks the ball line in the same frame, cream shirt, dark legs, glasses.</figcaption>
       </figure>
       <figure>
-        <img src="shots/mf-p4-player-detail-4x.png" alt="The same player at 4x nearest on the virtual pixels &mdash; hair mass, nape, collar line, hand, shirt number">
-        <figcaption>The same figure at <strong>4&times; nearest on the virtual pixels</strong> &mdash; hair mass, the nape between hair and collar, the jersey seam across the shoulders, a hand at the hip, the number block. The head is 13&times;12&nbsp;px in the virtual buffer; this is what the upscale is working with.</figcaption>
+        <img src="shots/mf-p4b-player-detail-4x.png" alt="The same player at 4x nearest on the virtual pixels &mdash; hair mass, nape, yoke seam, both arms, the number plate">
+        <figcaption>The same figure at <strong>4&times; nearest on the virtual pixels</strong> &mdash; hair mass, the nape between hair and collar, the yoke seam across the shoulders, both arms and the hands below them, the white number plate. The head is 13&times;12&nbsp;px in the 1080p frame (6&times;5 in the 640&times;480 buffer); this is what the upscale is working with.</figcaption>
       </figure>
       <figure>
-        <img src="shots/mf-p4-referee-1080.png" alt="The referee &mdash; fat, pale, dark hair, walking across the pitch with a pale-green fart cloud venting off him">
-        <figcaption>The referee, 2026-10-20 &mdash; the widest and palest figure on the pitch: fat build, dark hair, dark shorts, khaki shirt. The pale-green cloud is <strong>his</strong>, venting off his left side, with black stink beads over his head. He walks the ball line and the camera finds him without a special case.</figcaption>
+        <img src="shots/mf-p4b-referee-1080.png" alt="The referee &mdash; fat, cream shirt over the belly, black hair, dark legs, white lenses in a dark frame">
+        <figcaption>The referee, 2026-10-20 &mdash; the widest and palest figure on the pitch: fat build, the cream shirt stretched over the belly, black hair, dark legs. No stain on the shirt, no haze at his feet, no flies around his head &mdash; the old cloud and its beads are gone. He walks the ball line and the camera finds him without a special case.</figcaption>
       </figure>
       <figure>
-        <img src="shots/mf-p4-referee-face-6x.png" alt="The referee's face at 6x &mdash; two white eye bars with pupils, the dark brow row above, the nose">
-        <figcaption>The referee's face at <strong>6&times; nearest</strong>, same frame &mdash; two white eye bars with their pupils inside them, the dark brow row above, the nose between. The face plate is a 9&times;8 art grid drawn bold on purpose; at this three-quarter angle the mouth row does not separate from the jaw shadow, so this shot shows brow and eyes, not the mouth.</figcaption>
+        <img src="shots/mf-p4b-referee-face-6x.png" alt="The referee's face at 6x &mdash; the white lens bar in its black frame, the dark brow row above, the nose">
+        <figcaption>The referee's face at <strong>6&times; nearest</strong>, same frame &mdash; the white lens bar sitting in its black frame, the dark brow row above it, the nose below, the gold mouth row under the lenses. The face plate is a 9&times;8 art grid drawn bold on purpose, so at this size the two lenses read as one bar.</figcaption>
       </figure>
       <figure>
-        <img src="shots/mf-p4-hud-1080.png" alt="Match HUD &mdash; detached score chip, IP line, clock chip, per-team card tallies, bare line-art radar, corner player card with a 5-cell gauge">
-        <figcaption>HUD, 2026-10-20 &mdash; the WE4-style detached chips, no single bar: the score chip with a kit swatch either side, the dual-victory <code>IP 0-300</code> line under it, the clock chip top-right, the per-team card tallies beside it, the bare line-art radar with team dots and both goal boxes, and the corner player card with its <strong>5-cell gauge</strong> (three lit here). Radar and card are drawn in the same 960&times;720 virtual buffer as the pitch, then upscaled with it.</figcaption>
+        <img src="shots/mf-p4b-hud-1080.png" alt="Match HUD &mdash; detached score chip, IP line, clock chip, bare line-art radar, corner player cards with 5-cell gauges">
+        <figcaption>HUD, 2026-10-20 &mdash; the WE4-style detached chips, no single bar: the score chip with a kit swatch either side, the dual-victory <code>IP 0-0</code> line under it, the clock chip top-right, the bare line-art radar with team dots and both goal boxes, and the two corner player cards with their <strong>5-cell gauges</strong>, home five lit and away three. Radar and cards are drawn in the same 640&times;480 virtual buffer as the pitch, then upscaled with it.</figcaption>
       </figure>
       <figure>
-        <img src="shots/mf-p4-foul-1080.png" alt="The foul &mdash; two bodies down on the grass and the referee with his arm up holding the red card, card chip flipped in the HUD">
-        <figcaption>The foul and the call, 2026-10-20 &mdash; two bodies on the grass and the referee's arm up with the <strong>red card</strong> in his hand. The bottom-right chip flips to the card he showed and renames to the booked man; the commentary band drops to a clipped line while it plays. Every element here comes from the same 261-frame take as the video above.</figcaption>
+        <img src="shots/mf-p4b-foul-1080.png" alt="The foul &mdash; two bodies down on the grass and the referee with his arm up holding the red card">
+        <figcaption>The foul and the call, 2026-10-20 &mdash; two bodies on the grass, one red and one blue, and the referee's arm up with the <strong>red card</strong> in his hand, the ball still where the tackle fell. The bottom-right chip carries the away side, its red crest and four of its five gauge cells; the home card is not drawn in this take's render. Every element here comes from the same 261-frame take as the video above.</figcaption>
       </figure>
     </div>
   </section>
