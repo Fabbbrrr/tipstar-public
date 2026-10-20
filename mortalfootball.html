@@ -580,275 +580,6 @@
 
   <!-- ============ 07 PROGRESS GALLERY ============ -->
   <section class="section">
-    <div class="section-head"><h2>PROGRESS</h2><span class="n">07</span></div>
-    <div class="pitch-block">
-      <p>Live dev screenshots — captured from real builds, not mockups. Update as each milestone lands.</p>
-    </div>
-    <div class="gallery" id="mf-gallery">
-      <!-- NEW SHOT: append <figure> here as builds land -->
-      <figure>
-        <img src="shots/mf-p3-match-2x.png" alt="Match frame after the playtest-3 wave: welded ground grass, jostle contacts, spinning kit-colour selection triangle">
-        <figcaption>Match, 2026-10-15 late &mdash; the playtest-3 batch lands three fixes at once. The grass is now <strong>perspective-correct &mdash; welded to the ground</strong>: a fixed pitch point measured <strong>0.24 uv of camera-dependent slide (about 490 texels) &rarr; 0.000000</strong>, and the mow stripe stopped rotating with the camera; every other surface keeps the affine PS1 melt. Contact without a tackle is now a <strong>jostle</strong> (below 5 m/s closing you keep your feet &mdash; winning a loose ball is possible) and <strong>getting up costs stamina</strong>: each knockdown lowers the max bar by 25 and four downs take a man out of the match for good. The control marker is now a <strong>spinning kit-colour triangle at the feet</strong> (one turn per 2 s, red &mdash; the brighter kit). And the AI stops flapping: heading hysteresis cut sector changes <strong>22791 &rarr; 1738</strong> per match and the players got <em>faster</em> (4.38 &rarr; 5.02 m/s). Vision critic on this exact frame: no black artefacts, grass consistent, triangle reads. Real build, 2&times; nearest-neighbour.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-960-match-shadows-stand-2x.png" alt="Match frame with player contact shadows and the touchline crowd stand now in view">
-        <figcaption>Match, 2026-10-15 &mdash; two things the vision critic kept flagging are fixed and counted. Every figure now carries a grounded contact shadow (measured 0 &rarr; 6 blobs, scaling 236 &rarr; 19&nbsp;px with distance, 50&times; the run-to-run noise floor), so bodies sit on the pitch instead of floating. And the crowd stand is finally <em>on screen</em>: it measured <strong>0 visible pixels</strong> at the default camera before &mdash; the art existed and nobody could ever see it &mdash; and now shows <strong>30720&nbsp;px</strong>, identical across three runs. Same frame: menu font repaired (three glyph pairs had been byte-identical, so <code>0</code>/<code>O</code>, <code>1</code>/<code>I</code>, <code>2</code>/<code>S</code> were the same shape), and the boot&rarr;kick-off path cut from 8 keypresses to 2. Real build, 2&times; nearest-neighbour.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-960-match-formlight-2x.png" alt="Match frame after the form-lighting pass &mdash; mown stripes visible on the pitch, brighter turf, readable ball and players">
-        <figcaption>Match, 2026-10-14 late &mdash; the form-lighting pass. The pitch was one flat quad lit by a near-vertical light that made every vertical face the same tone and blew the tops to pure white; the light is now oblique and shades as <code>Ambient + (1-Ambient)*ndl</code>, which cannot exceed 1.0, so the figure reads <strong>26 distinct tones instead of 13</strong> with <strong>0% blown white instead of 31.9%</strong>. That fix darkened everything, so the ground layer got its own exposure floor: grass measured <strong>156.9 luma (over-lit) &rarr; 76.7 (too dark) &rarr; 114.3 (now)</strong> in the real frame. Mown stripes were separately re-aimed along the axis that survives the affine-UV clamp (render-distance stripe amplitude 3.33% &rarr; 8.87%). Real build, game window, 2&times; nearest-neighbour. A vision critic on this frame: &ldquo;bright enough&rdquo;, grass / markings / players / ball all clear.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-player-formlight-4x.png" alt="Single player at 4x &mdash; tapered torso, rounded limbs, shaped boot, three separated tone levels per part">
-        <figcaption>Player detail, 4&times; &mdash; the same figure that the flat lighting used to render as a featureless block now carries a tapered torso (shoulders wider than waist), 8-sided limbs and a shaped boot, and each part shows separated tone levels. Geometry went <strong>576 &rarr; 1686 vertices</strong> (192 &rarr; 562 triangles) behind the <em>same</em> parts/rig API, so injury, ragdoll and the gait animation are untouched; face normals were fixed at the root (a tapered part&rsquo;s widest ring was only present as cap-rim vertices).</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/menu-boot-4x.png" alt="Main menu on a plain launch &mdash; START MATCH, OPTIONS, CONTROLS, CREDITS, QUIT GAME from the real build">
-        <figcaption>Main menu, 2026-10-14 &mdash; a plain double-click of the exe now boots straight here, under a readable all-caps title with START MATCH / OPTIONS / CONTROLS / CREDITS / QUIT GAME and A CONFIRM / B BACK. Before this fix the default launch fell through to an empty scene and painted a black window (measured: 1 colour); now it paints the menu (15 colours). CONTROLS and CREDITS are new this pass &mdash; CREDITS carries the exact CC&nbsp;BY attributions for the shipped assets, asserted against THIRD-PARTY-NOTICES. Music is on by default too (was gated behind an env flag). Real build, 4&times; nearest-neighbour from the 960&times;720 capture.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-640-hud-cards-stamina.png" alt="Match HUD, 640x480 &mdash; kickoff with the scoreband, IP line, cards column and stamina bar, brighter ball on the spot">
-        <figcaption>Match HUD, 640&times;480 &mdash; later in the 2026-10-14 pass: the scoreband + dual-victory IP line, team CARD tallies under the radar and the controlled player's STAMINA bar, plus the ball brightened so it reads on grass (bake gain 1.5&rarr;1.7; measured ball-vs-turf luma gap +59&rarr;+89). Measured 71,828&nbsp;px changed vs the earlier HUD shot at the same seed/frame. Real build, not a mock.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-640-player-closeup.png" alt="Player close-up &mdash; 640x480, a red-kit player seen from behind with the ball ahead on the turf">
-        <figcaption>Player close-up, 640&times;480 &mdash; per-player skin tone, hair and body build are now driven by the identity bank (D3.1&ndash;D3.5), so the eleven read apart at a glance. Ball ahead on the CC0 turf. Honest note: the ball still reads dark against the grass at this distance &mdash; the readability pass (shadow/ring/trail) is in, but the ball's own brightness is the next fix.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-640-hud-kickoff.png" alt="Match HUD &mdash; 640x480 kickoff, HOME 0-0 AWAY scoreband with clock and the IP line">
-        <figcaption>Match HUD, 640&times;480 &mdash; the top band now reads <code>HOME x-y AWAY</code> with the clock on a dim backing slab, the dual-victory <code>IP a-b</code> line folded in under it, the radar with goal/halfway marks, and the commentary ticker (this pass: D4.1/D4.2 band + IP, D4.3/D4.4 radar). Captured from the real build at kickoff, not a mock.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-turf-before-after.png" alt="Turf before (left, dry olive leafy_grass) and after (right, vivid CC0 grass005 with mow stripes)">
-        <figcaption>Grass, before &rarr; after &mdash; left is the original dry/olive <code>leafy_grass</code> bake; right is the research-picked vivid CC0 <code>grass005</code>, re-baked through the same deterministic mow-stripe path and now bound in both scenes.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-kickoff-960.png" alt="Kickoff &mdash; 960x720, both sides lined up, the ball on the centre spot">
-        <figcaption>Kickoff, 960&times;720 &mdash; the current live render class (3&times; the 320 base). The vivid CC0 grass005 turf, white markings, ball on the spot. Captured from the real build, not a mock.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-960-play.gif" alt="Match play in motion &mdash; 50 frames at the 960 class, seed 11">
-        <figcaption>Match play in motion &mdash; 50 real frames, seed 11. Textured pitch, both teams, the ball moving &mdash; the affine warp and vertex snap kept intact.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-960-tackle.gif" alt="Tackle and knockdown in motion &mdash; 50 frames, seed 7, the moment an early incident lands">
-        <figcaption>A tackle and knockdown in motion &mdash; 50 real frames, seed 7. This is the beat the playtest pass re-timed: the victim now rises at WE's 0.5&ndash;3&nbsp;s instead of lying on the floor.</figcaption>
-      </figure>
-      <figure>
-        <video controls muted loop playsinline src="shots/mf-960-play.mp4" alt="Match gameplay recording"></video>
-        <figcaption>Match gameplay recording &mdash; the 960 class played out as video (mp4). Same deterministic sim, the presentation captured frame by frame.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-ball-close-960.png" alt="Ball close-up &mdash; CC0 leather bake on the 960 class">
-        <figcaption>The ball up close &mdash; CC0 leather through the texture seam; the ground star sits under the controlled man's feet in this frame.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-player-close-960.png" alt="Player close-up &mdash; skin cell, kit atlas, WE-lineage proportions">
-        <figcaption>A player up close &mdash; skin cell bound into the kit atlas, split limbs at the WE-lineage proportions, boots and socks distinct.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-matchplay-640x480.png" alt="Match play &mdash; current build, seed 7: textured pitch, both teams, HUD and live ticker">
-        <figcaption>Match play, current build &mdash; the vivid CC0 grass005 turf bound across both scenes, the CC0 leather ball, and the WE-lineage player proportions. The HUD carries score, clock and radar; the bottom strip is the live ticker.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-skin-closeup-640x480.png" alt="Player close-up &mdash; skin bound into the kit atlas, ball ahead on the pitch">
-        <figcaption>Player close-up &mdash; the CC0 skin cell bound into the kit atlas (2026-10-14): skin on head and arms, red jersey, navy shorts, boots, the CC0 leather ball ahead. Before that wave the player mesh carried no skin cell at all.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-tackle-640x480.gif" alt="The knockdown and the ground pose in motion, 60 fps, seed 7">
-        <figcaption>The knockdown and the ground pose in motion &mdash; 60&nbsp;fps, seed 7, 640&times;480. The same wave re-timed the recovery to WE's 0.5&ndash;3&nbsp;s and fixed the serious lane's floor pose (sim changes; not visible in this demo scene).</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/shot-menu-teamselect-640x480.png" alt="Team select — pre-match flow screen, real engine paint path">
-        <figcaption>Team select — home and away clubs picked here, cursor live from the headless paint path.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/shot-menu-formation-640x480.png" alt="Formation screen — pre-match flow screen, real engine paint path">
-        <figcaption>Formation screen — the M5.6b presets (4-4-2 and friends) selected per side.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/shot-menu-management-640x480.png" alt="Team management — pre-match flow screen, real engine paint path">
-        <figcaption>Team management — the squad step of the pre-match flow.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/shot-menu-difficulty-640x480.png" alt="Difficulty ladder — pre-match flow screen, real engine paint path">
-        <figcaption>Difficulty ladder — MurderField up through the WE2000-style tiers.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/shot-menu-loadout-640x480.png" alt="Murder loadout — pre-match flow screen, real engine paint path">
-        <figcaption>Murder loadout — the rule set that makes Injury Points a win path.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/shot-menu-options-640x480.png" alt="Options — pre-match flow screen, real engine paint path">
-        <figcaption>Options — the M12.7 audio sliders (master / sfx / music), wired to the mixer.</figcaption>
-      </figure>
-
-      <figure>
-        <img src="shots/mf-crowd-react-640x480.png" alt="Crowd reaction — the stand lit up seconds after a goal, private cosmetic stream">
-        <figcaption>Crowd reaction ON — the stand caught mid-shimmer, seconds after the first goal on this seed. Reactions ride a private cosmetic RNG, so the match sim itself is byte-identical with them off.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-crowd-idle-640x480.png" alt="Same seed, same camera, crowd idle before the event — the baseline for the reaction shot">
-        <figcaption>Same seed, same camera, moments before the goal — the idle stand for comparison (2,090 px of shimmer between the two).</figcaption>
-      </figure>
-
-                                          <figure>
-        <img src="shots/mf-proportions-before-after.png" alt="WE4 proportion pass &mdash; before (left) and after (right), same seed, same camera">
-        <figcaption>V5 &mdash; WE-lineage proportion pass, before (left) / after (right), same seed and camera: smaller head, longer legs, split limbs &mdash; the run gait (quantised arm/leg counter-swing, zero-RNG cosmetic phase) animates the split limbs in motion. Vision-critic confirmed on the pair.</figcaption>
-      </figure>
-
-<figure>
-        <img src="shots/mf-midfield-960.png" alt="The new 960x720 render class &mdash; midfield, seed 7">
-        <figcaption>V4 &mdash; the 960&times;720 class as live default (3&times; the 320 base, 4:3 kept, snap grid follows the class). ~14% of pixels genuinely differ from an upscaled 640 &mdash; a real render grid, not a blit. Perf: draw p95 1.52&nbsp;ms vs 1.50 at 640 &mdash; not fill-bound.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-640-class-ref.png" alt="Same seed, same frame at the old 640 class &mdash; the reference pair for the 960 shot">
-        <figcaption>The 640 reference pair for the shot above &mdash; same seed, same frame; the control star's possession-yellow cluster measures in both (the yellow in the bottom strip is the hint overlay).</figcaption>
-      </figure>
-
-<figure>
-        <img src="shots/mf-ball-before-x4.png" alt="Ball before &mdash; crushed dark read at play distance">
-        <figcaption>V3 before &mdash; the ball wasn&#39;t painted black: a sparse 16&times;16 code tex at ~5&nbsp;px on screen samples arbitrary texels, so it read crushed. The brightness fix is a real CC0 leather bake.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-ball-after-x4.png" alt="Ball after &mdash; bright leather bake through the seam">
-        <figcaption>V3 after &mdash; CC0 leather bake through the texture seam. Panel-seam detail is capped by 5&nbsp;px of pixel budget at this resolution; V4 (960&times;720) is where it pays.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-player-kit-x4.png" alt="Player after kit texture page &mdash; part separation via atlas cells">
-        <figcaption>V3 kit pass &mdash; one 512 atlas (weave &times; club colours + skin cells), UV-region pick per part; H7 numbers kept. Critic-verified: cleaner part separation, weave needs the V4 res.</figcaption>
-      </figure>
-
-<figure>
-        <img src="shots/mf-getup-640x480.png" alt="Knock-down victims now get up and play on &mdash; the standing player rose on his own; the body still down is the sent-off butcher">
-        <figcaption>V8 &mdash; PLAN &sect;264 finally built: knock-down victims get up after a short delay and re-engage; serious injuries still get the claim/stretcher beat (that part of the game is untouched). The victim here rose on his own &mdash; the body beside him is the sent-off butcher, staying down by design.</figcaption>
-      </figure>
-
-<figure>
-        <img src="shots/mf-marker-star-zoom-before-after.png" alt="Control marker zoom &mdash; before (left) and after (right): the new ground star under the controlled player">
-        <figcaption>V7 &mdash; the control marker, 3x zoom, before (left) / after (right). FIFA-style ground star, white at base, yellow when your player holds the ball, flash on switch. Vision-critic confirmed.</figcaption>
-      </figure>
-
-<figure>
-        <img src="shots/mf-turf-2048-critpass-640x480.png" alt="First real photoreal textures &mdash; CC0 turf bake through the affine seam, mow stripes, S3 ad boards, critic-passed">
-        <figcaption>V2 &mdash; first real textures through the seam: Poly Haven CC0 turf baked with mow stripes (density loop: 512 &rarr; 2048 after the vision critic flagged near-field mush), ad boards from the collected CC0 strip. Vision-critic pass on record.</figcaption>
-      </figure>
-
-<figure>
-        <img src="shots/mf-control-marker-640x480.png" alt="Playtest legibility live — control marker under the human player and the first-possession key hint strip">
-        <figcaption>Playtest legibility live &mdash; the new control marker under the human-controlled player plus the first-possession key hint strip, real engine capture.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-control-marker-off-640x480.png" alt="Same seed, same frame, marker and hint off — the baseline for the legibility pass">
-        <figcaption>Same seed, same frame, legibility pass off &mdash; the before shot (3,724 px of difference, all marker and hint).</figcaption>
-      </figure>
-
-      <figure>
-        <img src="shots/mf-camera-retuned-640x480.png" alt="The retuned default camera — ball-follow TV cam matched against ISS Pro 98 reference framing">
-        <figcaption>The retuned default — ball-follow TV camera measured against ISS Pro 98 reference screenshots (grass fraction 0.49 &rarr; 0.85 on the same seed). Playtest feedback made this real: the old presets were decorative.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-result-screen-640x480.png" alt="Full-time result screen — scoreline, injury-points breakdown, verdict">
-        <figcaption>The result screen (design doc first, tokens then code): FULL TIME, scoreline, per-side IP with combo/cap + style breakdown, verdict footer — every number from frozen state, never re-rolled. Seed pinned in tests.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-camera-wide-walkout.gif" alt="Wide camera — walkout beat into play, real engine capture">
-        <figcaption>Walkout → play, wide camera. The new session beats: players walk in, input's swallowed, then the match runs.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-camera-tight-walkout.gif" alt="Tight camera — walkout beat into play, real engine capture">
-        <figcaption>The same run at the tight preset — the camera setting the plan asked for.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-menu-640x480.png" alt="The WE2000-style menu flow — first screen live with cursor, real engine capture">
-        <figcaption>The pre-match flow is WE2000-shaped: team select → formation → management → difficulty → murder loadout → kickoff. First screen live, cursor working. Menu loop plays over it with IAUDIO=1.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-camera-tight-640x480.png" alt="Broadcast tight camera — one of three switchable vantages (wide / medium / tight)">
-        <figcaption>Broadcast tight — three TV camera presets now (wide, medium, tight), WE2000 style.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-camera-medium-640x480.gif" alt="Live 11-v-11 match at the new medium TV camera — real engine capture, 10 fps, one full attacking sequence">
-        <figcaption>Camera presets live: wide / medium / tight. This is the medium vantage — the WE2000-style TV cam — running a live 11-v-11 match: players moving, ball in play, HUD and radar as the player sees them.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-m010c-match-640x480.png" alt="Readability pass — same camera, same seed: kit numbers and ball seams now render at match distance, PS1 snap and dither untouched">
-        <figcaption>Readability pass — kit numbers, ball panel seams, boot straps, ball highlight. At TV-camera distance these read as a few pixels each (the diff against the old capture is the ball and shirt clusters) — they add up when the camera pushes in or the eye tracks the ball. Strikes, claim windows and stretcher->sub cycles are live now; the murder victory ends a match when all eleven drop.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-w2-match-640x480.png" alt="Wave 2 — the playable match at 640x480: radar minimap top-right, scoreboard, clock and ticker over live 11-v-11 play">
-        <figcaption>Wave 2 — the match keeps growing: strikes (L1 + barge/punch/high-kick) are in the combat layer, takedowns open a claim window you press R to bank, take all eleven of a side and the match ends in murder. All pixel gates re-baselined to the doubled render. (Wave 2: M2.6 strikes, M4.6 claim-live, M4.8 murder victory live, M0.10b gate re-baseline.)</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-w2-player-640x480.png" alt="Player close-up — PS1-era kit, skin and hair detail at the doubled 640x480 render, vertex snap and dither intact">
-        <figcaption>Close-up — the PS1 artefacts hold at the doubled render: snapped vertices, 15-bit colour, dither. The readability pass (ball seams, kit numbers) is the next renderer slice.</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-m010-match-640x480.png" alt="M0.10 wave — 640x480 render target live, radar minimap in the top-right corner, PS1 dither and snap intact">
-        <figcaption>640x480 — render doubled for clarity, radar minimap live. The 11-v-11 plays under the wide TV camera with home/away blips, scoreboard, clock and ticker on top. (M0.10 wave: radar HUD + M4.8 murder-victory rule landed; clarity pass continues.)</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-m10-teams-320x240.gif" alt="11 v 11 — two full teams, formation play, the far end in PS1 haze">
-        <figcaption>M10 · 11 contre 11 — two seeded rosters and 4-4-2 formations, both sides on team AI, keepers on their lines. The wide TV camera frames the near half while the far end melts into the floodlit PS1 haze; every tackle still routes through the referee, and the HUD scoreboard and commentaire ticker ride on top</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-m6-hud-320x240.gif" alt="Match HUD — 5x7 bitmap-font scoreboard, clock and commentary ticker over live play, real engine capture">
-        <figcaption>M6 · The match HUD — a procedural 5x7 bitmap font (no content pipeline) draws the scoreboard and clock top-left, and the commentaire line runs as a bottom ticker: kickoffs, goals, takedowns, fouls and verdicts all get a line, deterministic per match seed, caps-only like a 90s TV graphic. Takedowns still bank Injury Points and tumble victims in the ragdoll fold</figcaption>
-      </figure>
-      <figure>
-        <h3>M5.3 · Commentaire — the stadium voice</h3>
-        <p>Text today, not voice — the seeded line engine is live in the build (<code>Commentary</code>, 48 lines across 8 events, deterministic per match seed). TTS is a later milestone: audio isn't in the engine yet. Real outputs from the committed code:</p>
-        <ul>
-          <li>Kickoff — "And we begin. Grass, ambition, and a dubious whistle."</li>
-          <li>Injury — "Bone met stud. Stud won. Player naps. Claim ignored. Insurance cites rules."</li>
-          <li>Injury — "His leg says no. Play says go. Leg loses. Fate claims him. The account is closed."</li>
-          <li>Goal — "Goal numero deux. The corner flag trembles in fear."</li>
-          <li>Goal — "The ball caresses the net. The net cannot complain."</li>
-          <li>Foul — "Foul! The tackle was exquisite. The victim dissents loudly."</li>
-          <li>Half-time — "Mi-temps! The stall sells out of heart medication."</li>
-          <li>Full-time — "The whistle ends it at 2. The pigeons file a complaint."</li>
-          <li>Injury-point win — "Unbelievable! The walking wounded collect the silverware."</li>
-        </ul>
-      </figure>
-      <figure>
-        <img src="shots/mf-m53-match-320x240.gif" alt="Playable match — tackle, takedown, ragdoll tumble and injury-point bars filling, real engine capture">
-        <figcaption>M5.3r · The match is playable — WASD move, Shift sprint, Space shoot (sprint for power), E tackle, R claim. Takedowns bank Injury Points for the attacker, the victim tumbles through a deterministic ragdoll fold, and the red/blue bars along the touchlines fill toward the 500-point victory threshold. Or win on goals — dual victory, both always live</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-m45-crowd-320x240.gif" alt="M7 living stadium — 480 low-poly fans bouncing in seeded waves behind one goal, real engine capture">
-        <figcaption>M7 · Living stadium — a tiered stand behind one goal: ~480 low-poly fans split into a red home block, a blue away block and a neutral centre band on a dark slab under a night sky. When a 10s chance window hits, the whole crowd hops in a seeded ripple (deterministic per frame). Pitch and markings stay in the foreground</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-m44-player-1280x960.png" alt="M6 player model with identifiable body parts — sterling effort, real engine capture">
-        <figcaption>M6 · Part-identified player — jersey, skin, hair, shorts, socks, boots all render as separable colours, WE2000-ish proportions (a 1.85 m figure, upright ratio 5.75). Still chunky PS1 boxes under vertex snap — the model is parts now, so the body reads at a glance whether standing or downed</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-m43-stretcher-320x240.gif" alt="M4.3 stretcher medics carrying an injured player off the pitch — real engine capture">
-        <figcaption>M4.3 · Stretcher — two medics jog on, load the body and carry it off. The body is gone by the end of the clip. Real build, 93 frames, 320×240 internal</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-m42-tumble-320x240.gif" alt="M4.2 ragdoll — a tackled player tumbles and settles on the pitch">
-        <figcaption>M4.2 · Ragdoll — a player taken out tumbles and settles on the pitch. 180 frames at 60 fps from the real build (byte-reproducible per frame). Six free bodies, one joint each — and now each limb carries its body-part colour (jersey-red torso, skin head and arms, boot-dark legs, hair cap), so a downed player still reads as a body, not a blob</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-m13-player-1280x960.png" alt="M1.3 player controller on the pitch — real engine capture">
-        <figcaption>M1.3 · Player controller live — red player walks the pitch with the ball, ball-follow camera, 320×240 internal, PS1 pipeline (captured from the real build, deterministic)</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-m11-pitch-1280x960.png" alt="M1.1 pitch, goals and net — real engine capture">
-        <figcaption>M1.1 · The pitch — grass, centre circle, penalty boxes, goals + net, ad boards. 105×68 m, broadcast camera, chunky PS1 markings. (Markings still steppy at 320×240 — thin geometry quantises under vertex snap; texture-baked paint pass belongs to the juice stage)</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-m08-cube-320x240.gif" alt="M0.8 rotating cube through the full PS1 pipeline — 100fps capture, real engine">
-        <figcaption>M0.8 · Rotating cube, real engine — 320×240 render, 100 fps capture, deterministic (seeded RNG log byte-identical)</figcaption>
-      </figure>
-      <figure>
-        <img src="shots/mf-m06-shaderlab-320x240.png" alt="M0.6 shader lab — first capture from the real PS1 renderer">
-        <figcaption>M0.6 · PS1 renderer live — 320×240 internal, 15-bit dither, fog, vertex snap (captured from the real build)</figcaption>
-      </figure>
-    </div>
-  <!-- ============ 08 PLAYER DETAIL ============ -->
-  <section class="section">
     <div class="section-head"><h2>PLAYER DETAIL</h2><span class="n">08</span></div>
     <div class="pitch-block">
       <p>The detail pass, captured at 1080p &mdash; the virtual 640&times;480 render pinned into a 1920&times;1080 backbuffer and letterboxed at 2.25&times; nearest into the rect (240,0,1440,1080). Not a 320&times;240 upscale. Same deterministic sim throughout, seed 402.</p>
@@ -886,7 +617,287 @@
   </section>
 
   <section id="sound">
-    <h2>Sound — procedural, from the game's own synth</h2>
+    <h2>PROGRESS</h2><span class="n">07</span></div>
+    <div class="pitch-block">
+      <p>Live dev screenshots — captured from real builds, not mockups. Update as each milestone lands.</p>
+    </div>
+    <div class="gallery" id="mf-gallery">
+      <!-- PROGRESS is grouped by theme, newest first. Source order in git history is oldest-first. -->
+      <h3 class="gallery-section">PITCH, CAMERA & LIGHT</h3>
+      <div class="gallery-grid">
+        <figure>
+        <img src="shots/mf-m06-shaderlab-320x240.png" alt="M0.6 shader lab — first capture from the real PS1 renderer">
+        <figcaption>M0.6 · PS1 renderer live — 320×240 internal, 15-bit dither, fog, vertex snap (captured from the real build)</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-m08-cube-320x240.gif" alt="M0.8 rotating cube through the full PS1 pipeline — 100fps capture, real engine">
+        <figcaption>M0.8 · Rotating cube, real engine — 320×240 render, 100 fps capture, deterministic (seeded RNG log byte-identical)</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-m11-pitch-1280x960.png" alt="M1.1 pitch, goals and net — real engine capture">
+        <figcaption>M1.1 · The pitch — grass, centre circle, penalty boxes, goals + net, ad boards. 105×68 m, broadcast camera, chunky PS1 markings. (Markings still steppy at 320×240 — thin geometry quantises under vertex snap; texture-baked paint pass belongs to the juice stage)</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-m45-crowd-320x240.gif" alt="M7 living stadium — 480 low-poly fans bouncing in seeded waves behind one goal, real engine capture">
+        <figcaption>M7 · Living stadium — a tiered stand behind one goal: ~480 low-poly fans split into a red home block, a blue away block and a neutral centre band on a dark slab under a night sky. When a 10s chance window hits, the whole crowd hops in a seeded ripple (deterministic per frame). Pitch and markings stay in the foreground</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-camera-medium-640x480.gif" alt="Live 11-v-11 match at the new medium TV camera — real engine capture, 10 fps, one full attacking sequence">
+        <figcaption>Camera presets live: wide / medium / tight. This is the medium vantage — the WE2000-style TV cam — running a live 11-v-11 match: players moving, ball in play, HUD and radar as the player sees them.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-camera-tight-640x480.png" alt="Broadcast tight camera — one of three switchable vantages (wide / medium / tight)">
+        <figcaption>Broadcast tight — three TV camera presets now (wide, medium, tight), WE2000 style.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-camera-tight-walkout.gif" alt="Tight camera — walkout beat into play, real engine capture">
+        <figcaption>The same run at the tight preset — the camera setting the plan asked for.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-camera-wide-walkout.gif" alt="Wide camera — walkout beat into play, real engine capture">
+        <figcaption>Walkout → play, wide camera. The new session beats: players walk in, input's swallowed, then the match runs.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-camera-retuned-640x480.png" alt="The retuned default camera — ball-follow TV cam matched against ISS Pro 98 reference framing">
+        <figcaption>The retuned default — ball-follow TV camera measured against ISS Pro 98 reference screenshots (grass fraction 0.49 &rarr; 0.85 on the same seed). Playtest feedback made this real: the old presets were decorative.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-turf-2048-critpass-640x480.png" alt="First real photoreal textures &mdash; CC0 turf bake through the affine seam, mow stripes, S3 ad boards, critic-passed">
+        <figcaption>V2 &mdash; first real textures through the seam: Poly Haven CC0 turf baked with mow stripes (density loop: 512 &rarr; 2048 after the vision critic flagged near-field mush), ad boards from the collected CC0 strip. Vision-critic pass on record.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-crowd-idle-640x480.png" alt="Same seed, same camera, crowd idle before the event — the baseline for the reaction shot">
+        <figcaption>Same seed, same camera, moments before the goal — the idle stand for comparison (2,090 px of shimmer between the two).</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-crowd-react-640x480.png" alt="Crowd reaction — the stand lit up seconds after a goal, private cosmetic stream">
+        <figcaption>Crowd reaction ON — the stand caught mid-shimmer, seconds after the first goal on this seed. Reactions ride a private cosmetic RNG, so the match sim itself is byte-identical with them off.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-turf-before-after.png" alt="Turf before (left, dry olive leafy_grass) and after (right, vivid CC0 grass005 with mow stripes)">
+        <figcaption>Grass, before &rarr; after &mdash; left is the original dry/olive <code>leafy_grass</code> bake; right is the research-picked vivid CC0 <code>grass005</code>, re-baked through the same deterministic mow-stripe path and now bound in both scenes.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-960-match-formlight-2x.png" alt="Match frame after the form-lighting pass &mdash; mown stripes visible on the pitch, brighter turf, readable ball and players">
+        <figcaption>Match, 2026-10-14 late &mdash; the form-lighting pass. The pitch was one flat quad lit by a near-vertical light that made every vertical face the same tone and blew the tops to pure white; the light is now oblique and shades as <code>Ambient + (1-Ambient)*ndl</code>, which cannot exceed 1.0, so the figure reads <strong>26 distinct tones instead of 13</strong> with <strong>0% blown white instead of 31.9%</strong>. That fix darkened everything, so the ground layer got its own exposure floor: grass measured <strong>156.9 luma (over-lit) &rarr; 76.7 (too dark) &rarr; 114.3 (now)</strong> in the real frame. Mown stripes were separately re-aimed along the axis that survives the affine-UV clamp (render-distance stripe amplitude 3.33% &rarr; 8.87%). Real build, game window, 2&times; nearest-neighbour. A vision critic on this frame: &ldquo;bright enough&rdquo;, grass / markings / players / ball all clear.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-960-match-shadows-stand-2x.png" alt="Match frame with player contact shadows and the touchline crowd stand now in view">
+        <figcaption>Match, 2026-10-15 &mdash; two things the vision critic kept flagging are fixed and counted. Every figure now carries a grounded contact shadow (measured 0 &rarr; 6 blobs, scaling 236 &rarr; 19&nbsp;px with distance, 50&times; the run-to-run noise floor), so bodies sit on the pitch instead of floating. And the crowd stand is finally <em>on screen</em>: it measured <strong>0 visible pixels</strong> at the default camera before &mdash; the art existed and nobody could ever see it &mdash; and now shows <strong>30720&nbsp;px</strong>, identical across three runs. Same frame: menu font repaired (three glyph pairs had been byte-identical, so <code>0</code>/<code>O</code>, <code>1</code>/<code>I</code>, <code>2</code>/<code>S</code> were the same shape), and the boot&rarr;kick-off path cut from 8 keypresses to 2. Real build, 2&times; nearest-neighbour.</figcaption>
+      </figure>
+      </div>
+      <h3 class="gallery-section">PLAYERS, KITS & FACES</h3>
+      <div class="gallery-grid">
+        <figure>
+        <img src="shots/mf-m13-player-1280x960.png" alt="M1.3 player controller on the pitch — real engine capture">
+        <figcaption>M1.3 · Player controller live — red player walks the pitch with the ball, ball-follow camera, 320×240 internal, PS1 pipeline (captured from the real build, deterministic)</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-m44-player-1280x960.png" alt="M6 player model with identifiable body parts — sterling effort, real engine capture">
+        <figcaption>M6 · Part-identified player — jersey, skin, hair, shorts, socks, boots all render as separable colours, WE2000-ish proportions (a 1.85 m figure, upright ratio 5.75). Still chunky PS1 boxes under vertex snap — the model is parts now, so the body reads at a glance whether standing or downed</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-w2-player-640x480.png" alt="Player close-up — PS1-era kit, skin and hair detail at the doubled 640x480 render, vertex snap and dither intact">
+        <figcaption>Close-up — the PS1 artefacts hold at the doubled render: snapped vertices, 15-bit colour, dither. The readability pass (ball seams, kit numbers) is the next renderer slice.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-player-kit-x4.png" alt="Player after kit texture page &mdash; part separation via atlas cells">
+        <figcaption>V3 kit pass &mdash; one 512 atlas (weave &times; club colours + skin cells), UV-region pick per part; H7 numbers kept. Critic-verified: cleaner part separation, weave needs the V4 res.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-640-class-ref.png" alt="Same seed, same frame at the old 640 class &mdash; the reference pair for the 960 shot">
+        <figcaption>The 640 reference pair for the shot above &mdash; same seed, same frame; the control star's possession-yellow cluster measures in both (the yellow in the bottom strip is the hint overlay).</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-proportions-before-after.png" alt="WE4 proportion pass &mdash; before (left) and after (right), same seed, same camera">
+        <figcaption>V5 &mdash; WE-lineage proportion pass, before (left) / after (right), same seed and camera: smaller head, longer legs, split limbs &mdash; the run gait (quantised arm/leg counter-swing, zero-RNG cosmetic phase) animates the split limbs in motion. Vision-critic confirmed on the pair.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-skin-closeup-640x480.png" alt="Player close-up &mdash; skin bound into the kit atlas, ball ahead on the pitch">
+        <figcaption>Player close-up &mdash; the CC0 skin cell bound into the kit atlas (2026-10-14): skin on head and arms, red jersey, navy shorts, boots, the CC0 leather ball ahead. Before that wave the player mesh carried no skin cell at all.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-player-close-960.png" alt="Player close-up &mdash; skin cell, kit atlas, WE-lineage proportions">
+        <figcaption>A player up close &mdash; skin cell bound into the kit atlas, split limbs at the WE-lineage proportions, boots and socks distinct.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-640-player-closeup.png" alt="Player close-up &mdash; 640x480, a red-kit player seen from behind with the ball ahead on the turf">
+        <figcaption>Player close-up, 640&times;480 &mdash; per-player skin tone, hair and body build are now driven by the identity bank (D3.1&ndash;D3.5), so the eleven read apart at a glance. Ball ahead on the CC0 turf. Honest note: the ball still reads dark against the grass at this distance &mdash; the readability pass (shadow/ring/trail) is in, but the ball's own brightness is the next fix.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-player-formlight-4x.png" alt="Single player at 4x &mdash; tapered torso, rounded limbs, shaped boot, three separated tone levels per part">
+        <figcaption>Player detail, 4&times; &mdash; the same figure that the flat lighting used to render as a featureless block now carries a tapered torso (shoulders wider than waist), 8-sided limbs and a shaped boot, and each part shows separated tone levels. Geometry went <strong>576 &rarr; 1686 vertices</strong> (192 &rarr; 562 triangles) behind the <em>same</em> parts/rig API, so injury, ragdoll and the gait animation are untouched; face normals were fixed at the root (a tapered part&rsquo;s widest ring was only present as cap-rim vertices).</figcaption>
+      </figure>
+      </div>
+      <h3 class="gallery-section">THE VIOLENCE — tackles, tumbles, stretchers</h3>
+      <div class="gallery-grid">
+        <figure>
+        <img src="shots/mf-m42-tumble-320x240.gif" alt="M4.2 ragdoll — a tackled player tumbles and settles on the pitch">
+        <figcaption>M4.2 · Ragdoll — a player taken out tumbles and settles on the pitch. 180 frames at 60 fps from the real build (byte-reproducible per frame). Six free bodies, one joint each — and now each limb carries its body-part colour (jersey-red torso, skin head and arms, boot-dark legs, hair cap), so a downed player still reads as a body, not a blob</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-m43-stretcher-320x240.gif" alt="M4.3 stretcher medics carrying an injured player off the pitch — real engine capture">
+        <figcaption>M4.3 · Stretcher — two medics jog on, load the body and carry it off. The body is gone by the end of the clip. Real build, 93 frames, 320×240 internal</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-getup-640x480.png" alt="Knock-down victims now get up and play on &mdash; the standing player rose on his own; the body still down is the sent-off butcher">
+        <figcaption>V8 &mdash; PLAN &sect;264 finally built: knock-down victims get up after a short delay and re-engage; serious injuries still get the claim/stretcher beat (that part of the game is untouched). The victim here rose on his own &mdash; the body beside him is the sent-off butcher, staying down by design.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-tackle-640x480.gif" alt="The knockdown and the ground pose in motion, 60 fps, seed 7">
+        <figcaption>The knockdown and the ground pose in motion &mdash; 60&nbsp;fps, seed 7, 640&times;480. The same wave re-timed the recovery to WE's 0.5&ndash;3&nbsp;s and fixed the serious lane's floor pose (sim changes; not visible in this demo scene).</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-960-tackle.gif" alt="Tackle and knockdown in motion &mdash; 50 frames, seed 7, the moment an early incident lands">
+        <figcaption>A tackle and knockdown in motion &mdash; 50 real frames, seed 7. This is the beat the playtest pass re-timed: the victim now rises at WE's 0.5&ndash;3&nbsp;s instead of lying on the floor.</figcaption>
+      </figure>
+      </div>
+      <h3 class="gallery-section">MATCHPLAY</h3>
+      <div class="gallery-grid">
+        <figure>
+        <img src="shots/mf-m53-match-320x240.gif" alt="Playable match — tackle, takedown, ragdoll tumble and injury-point bars filling, real engine capture">
+        <figcaption>M5.3r · The match is playable — WASD move, Shift sprint, Space shoot (sprint for power), E tackle, R claim. Takedowns bank Injury Points for the attacker, the victim tumbles through a deterministic ragdoll fold, and the red/blue bars along the touchlines fill toward the 500-point victory threshold. Or win on goals — dual victory, both always live</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-m010-match-640x480.png" alt="M0.10 wave — 640x480 render target live, radar minimap in the top-right corner, PS1 dither and snap intact">
+        <figcaption>640x480 — render doubled for clarity, radar minimap live. The 11-v-11 plays under the wide TV camera with home/away blips, scoreboard, clock and ticker on top. (M0.10 wave: radar HUD + M4.8 murder-victory rule landed; clarity pass continues.)</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-w2-match-640x480.png" alt="Wave 2 — the playable match at 640x480: radar minimap top-right, scoreboard, clock and ticker over live 11-v-11 play">
+        <figcaption>Wave 2 — the match keeps growing: strikes (L1 + barge/punch/high-kick) are in the combat layer, takedowns open a claim window you press R to bank, take all eleven of a side and the match ends in murder. All pixel gates re-baselined to the doubled render. (Wave 2: M2.6 strikes, M4.6 claim-live, M4.8 murder victory live, M0.10b gate re-baseline.)</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-m010c-match-640x480.png" alt="Readability pass — same camera, same seed: kit numbers and ball seams now render at match distance, PS1 snap and dither untouched">
+        <figcaption>Readability pass — kit numbers, ball panel seams, boot straps, ball highlight. At TV-camera distance these read as a few pixels each (the diff against the old capture is the ball and shirt clusters) — they add up when the camera pushes in or the eye tracks the ball. Strikes, claim windows and stretcher->sub cycles are live now; the murder victory ends a match when all eleven drop.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-ball-after-x4.png" alt="Ball after &mdash; bright leather bake through the seam">
+        <figcaption>V3 after &mdash; CC0 leather bake through the texture seam. Panel-seam detail is capped by 5&nbsp;px of pixel budget at this resolution; V4 (960&times;720) is where it pays.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-ball-before-x4.png" alt="Ball before &mdash; crushed dark read at play distance">
+        <figcaption>V3 before &mdash; the ball wasn&#39;t painted black: a sparse 16&times;16 code tex at ~5&nbsp;px on screen samples arbitrary texels, so it read crushed. The brightness fix is a real CC0 leather bake.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-midfield-960.png" alt="The new 960x720 render class &mdash; midfield, seed 7">
+        <figcaption>V4 &mdash; the 960&times;720 class as live default (3&times; the 320 base, 4:3 kept, snap grid follows the class). ~14% of pixels genuinely differ from an upscaled 640 &mdash; a real render grid, not a blit. Perf: draw p95 1.52&nbsp;ms vs 1.50 at 640 &mdash; not fill-bound.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-matchplay-640x480.png" alt="Match play &mdash; current build, seed 7: textured pitch, both teams, HUD and live ticker">
+        <figcaption>Match play, current build &mdash; the vivid CC0 grass005 turf bound across both scenes, the CC0 leather ball, and the WE-lineage player proportions. The HUD carries score, clock and radar; the bottom strip is the live ticker.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-ball-close-960.png" alt="Ball close-up &mdash; CC0 leather bake on the 960 class">
+        <figcaption>The ball up close &mdash; CC0 leather through the texture seam; the ground star sits under the controlled man's feet in this frame.</figcaption>
+      </figure>
+        <figure>
+        <video controls muted loop playsinline src="shots/mf-960-play.mp4" alt="Match gameplay recording"></video>
+        <figcaption>Match gameplay recording &mdash; the 960 class played out as video (mp4). Same deterministic sim, the presentation captured frame by frame.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-960-play.gif" alt="Match play in motion &mdash; 50 frames at the 960 class, seed 11">
+        <figcaption>Match play in motion &mdash; 50 real frames, seed 11. Textured pitch, both teams, the ball moving &mdash; the affine warp and vertex snap kept intact.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-kickoff-960.png" alt="Kickoff &mdash; 960x720, both sides lined up, the ball on the centre spot">
+        <figcaption>Kickoff, 960&times;720 &mdash; the current live render class (3&times; the 320 base). The vivid CC0 grass005 turf, white markings, ball on the spot. Captured from the real build, not a mock.</figcaption>
+      </figure>
+        <figure> here as builds land -->
+      <figure>
+        <img src="shots/mf-p3-match-2x.png" alt="Match frame after the playtest-3 wave: welded ground grass, jostle contacts, spinning kit-colour selection triangle">
+        <figcaption>Match, 2026-10-15 late &mdash; the playtest-3 batch lands three fixes at once. The grass is now <strong>perspective-correct &mdash; welded to the ground</strong>: a fixed pitch point measured <strong>0.24 uv of camera-dependent slide (about 490 texels) &rarr; 0.000000</strong>, and the mow stripe stopped rotating with the camera; every other surface keeps the affine PS1 melt. Contact without a tackle is now a <strong>jostle</strong> (below 5 m/s closing you keep your feet &mdash; winning a loose ball is possible) and <strong>getting up costs stamina</strong>: each knockdown lowers the max bar by 25 and four downs take a man out of the match for good. The control marker is now a <strong>spinning kit-colour triangle at the feet</strong> (one turn per 2 s, red &mdash; the brighter kit). And the AI stops flapping: heading hysteresis cut sector changes <strong>22791 &rarr; 1738</strong> per match and the players got <em>faster</em> (4.38 &rarr; 5.02 m/s). Vision critic on this exact frame: no black artefacts, grass consistent, triangle reads. Real build, 2&times; nearest-neighbour.</figcaption>
+      </figure>
+      </div>
+      <h3 class="gallery-section">EARLY BUILDS</h3>
+      <div class="gallery-grid">
+        <figure>
+        <h3>M5.3 · Commentaire — the stadium voice</h3>
+        <p>Text today, not voice — the seeded line engine is live in the build (<code>Commentary</code>, 48 lines across 8 events, deterministic per match seed). TTS is a later milestone: audio isn't in the engine yet. Real outputs from the committed code:</p>
+        <ul>
+          <li>Kickoff — "And we begin. Grass, ambition, and a dubious whistle."</li>
+          <li>Injury — "Bone met stud. Stud won. Player naps. Claim ignored. Insurance cites rules."</li>
+          <li>Injury — "His leg says no. Play says go. Leg loses. Fate claims him. The account is closed."</li>
+          <li>Goal — "Goal numero deux. The corner flag trembles in fear."</li>
+          <li>Goal — "The ball caresses the net. The net cannot complain."</li>
+          <li>Foul — "Foul! The tackle was exquisite. The victim dissents loudly."</li>
+          <li>Half-time — "Mi-temps! The stall sells out of heart medication."</li>
+          <li>Full-time — "The whistle ends it at 2. The pigeons file a complaint."</li>
+          <li>Injury-point win — "Unbelievable! The walking wounded collect the silverware."</li>
+        </ul>
+      </figure>
+        <figure>
+        <img src="shots/mf-m10-teams-320x240.gif" alt="11 v 11 — two full teams, formation play, the far end in PS1 haze">
+        <figcaption>M10 · 11 contre 11 — two seeded rosters and 4-4-2 formations, both sides on team AI, keepers on their lines. The wide TV camera frames the near half while the far end melts into the floodlit PS1 haze; every tackle still routes through the referee, and the HUD scoreboard and commentaire ticker ride on top</figcaption>
+      </figure>
+      </div>
+      <h3 class="gallery-section">HUD, MENUS & UI</h3>
+      <div class="gallery-grid">
+        <figure>
+        <img src="shots/mf-m6-hud-320x240.gif" alt="Match HUD — 5x7 bitmap-font scoreboard, clock and commentary ticker over live play, real engine capture">
+        <figcaption>M6 · The match HUD — a procedural 5x7 bitmap font (no content pipeline) draws the scoreboard and clock top-left, and the commentaire line runs as a bottom ticker: kickoffs, goals, takedowns, fouls and verdicts all get a line, deterministic per match seed, caps-only like a 90s TV graphic. Takedowns still bank Injury Points and tumble victims in the ragdoll fold</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-menu-640x480.png" alt="The WE2000-style menu flow — first screen live with cursor, real engine capture">
+        <figcaption>The pre-match flow is WE2000-shaped: team select → formation → management → difficulty → murder loadout → kickoff. First screen live, cursor working. Menu loop plays over it with IAUDIO=1.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-result-screen-640x480.png" alt="Full-time result screen — scoreline, injury-points breakdown, verdict">
+        <figcaption>The result screen (design doc first, tokens then code): FULL TIME, scoreline, per-side IP with combo/cap + style breakdown, verdict footer — every number from frozen state, never re-rolled. Seed pinned in tests.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-control-marker-off-640x480.png" alt="Same seed, same frame, marker and hint off — the baseline for the legibility pass">
+        <figcaption>Same seed, same frame, legibility pass off &mdash; the before shot (3,724 px of difference, all marker and hint).</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-control-marker-640x480.png" alt="Playtest legibility live — control marker under the human player and the first-possession key hint strip">
+        <figcaption>Playtest legibility live &mdash; the new control marker under the human-controlled player plus the first-possession key hint strip, real engine capture.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-marker-star-zoom-before-after.png" alt="Control marker zoom &mdash; before (left) and after (right): the new ground star under the controlled player">
+        <figcaption>V7 &mdash; the control marker, 3x zoom, before (left) / after (right). FIFA-style ground star, white at base, yellow when your player holds the ball, flash on switch. Vision-critic confirmed.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/shot-menu-options-640x480.png" alt="Options — pre-match flow screen, real engine paint path">
+        <figcaption>Options — the M12.7 audio sliders (master / sfx / music), wired to the mixer.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/shot-menu-loadout-640x480.png" alt="Murder loadout — pre-match flow screen, real engine paint path">
+        <figcaption>Murder loadout — the rule set that makes Injury Points a win path.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/shot-menu-difficulty-640x480.png" alt="Difficulty ladder — pre-match flow screen, real engine paint path">
+        <figcaption>Difficulty ladder — MurderField up through the WE2000-style tiers.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/shot-menu-management-640x480.png" alt="Team management — pre-match flow screen, real engine paint path">
+        <figcaption>Team management — the squad step of the pre-match flow.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/shot-menu-formation-640x480.png" alt="Formation screen — pre-match flow screen, real engine paint path">
+        <figcaption>Formation screen — the M5.6b presets (4-4-2 and friends) selected per side.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/shot-menu-teamselect-640x480.png" alt="Team select — pre-match flow screen, real engine paint path">
+        <figcaption>Team select — home and away clubs picked here, cursor live from the headless paint path.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-640-hud-kickoff.png" alt="Match HUD &mdash; 640x480 kickoff, HOME 0-0 AWAY scoreband with clock and the IP line">
+        <figcaption>Match HUD, 640&times;480 &mdash; the top band now reads <code>HOME x-y AWAY</code> with the clock on a dim backing slab, the dual-victory <code>IP a-b</code> line folded in under it, the radar with goal/halfway marks, and the commentary ticker (this pass: D4.1/D4.2 band + IP, D4.3/D4.4 radar). Captured from the real build at kickoff, not a mock.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-640-hud-cards-stamina.png" alt="Match HUD, 640x480 &mdash; kickoff with the scoreband, IP line, cards column and stamina bar, brighter ball on the spot">
+        <figcaption>Match HUD, 640&times;480 &mdash; later in the 2026-10-14 pass: the scoreband + dual-victory IP line, team CARD tallies under the radar and the controlled player's STAMINA bar, plus the ball brightened so it reads on grass (bake gain 1.5&rarr;1.7; measured ball-vs-turf luma gap +59&rarr;+89). Measured 71,828&nbsp;px changed vs the earlier HUD shot at the same seed/frame. Real build, not a mock.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/menu-boot-4x.png" alt="Main menu on a plain launch &mdash; START MATCH, OPTIONS, CONTROLS, CREDITS, QUIT GAME from the real build">
+        <figcaption>Main menu, 2026-10-14 &mdash; a plain double-click of the exe now boots straight here, under a readable all-caps title with START MATCH / OPTIONS / CONTROLS / CREDITS / QUIT GAME and A CONFIRM / B BACK. Before this fix the default launch fell through to an empty scene and painted a black window (measured: 1 colour); now it paints the menu (15 colours). CONTROLS and CREDITS are new this pass &mdash; CREDITS carries the exact CC&nbsp;BY attributions for the shipped assets, asserted against THIRD-PARTY-NOTICES. Music is on by default too (was gated behind an env flag). Real build, 4&times; nearest-neighbour from the 960&times;720 capture.</figcaption>
+      </figure>
+      </div>
+
+    </div>
+  <!-- ============ 08 PLAYER DETAIL ============ -->
+  <section class="section">
+    <div class="section-head"><h2>Sound — procedural, from the game's own synth</h2>
     <p>Every cue is generated from code at boot (sine/noise/envelope primitives, no samples). These are the engine's actual outputs:</p>
     <ul class="soundlist">
       <li><audio controls preload="none" src="sound/Whistle.wav"></audio> Whistle — kickoff / half-time / full-time</li>
