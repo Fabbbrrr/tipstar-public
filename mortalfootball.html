@@ -580,7 +580,23 @@
 
   <!-- ============ 07 PROGRESS GALLERY ============ -->
   <section class="section">
-    <div class="section-head"><h2>PLAYER DETAIL</h2><span class="n">08</span></div>
+    <div class="section-head"><h2>PRESENCE</h2>
+    <div class="gallery" id="mf-presence">
+      <figure>
+        <img src="shots/mf-p5-hud-1080.png" alt="Live play with the rebuilt terrace crowd, the two-band depth haze and the WE4 HUD">
+        <figcaption><strong>Presence, newest</strong> &mdash; the far terrace now carries real tonal spread instead of a 2-luma hatch that held <strong>no human figure at all</strong>: saturation 0.09&ndash;0.22 &rarr; 0.29&ndash;0.30, warm tones 0&ndash;4.7&nbsp;% &rarr; 25.5&ndash;28.5&nbsp;%, distinct tones under the HUD chips 5&ndash;6 &rarr; 22&ndash;34. A two-band per-pixel depth haze (pitch 20&ndash;96&nbsp;m, terrace 40&ndash;170&nbsp;m) lifts the far third by 11.3 luma and leaves the near play untouched &mdash; ball-vs-ground contrast measured <strong>4.28:1 before and after</strong>, so the haze costs the ball nothing.</figcaption>
+      </figure>
+      <figure>
+        <img src="shots/mf-p5-number-1080.png" alt="The screen-space shirt-number badge on the controlled player">
+        <figcaption><strong>The number reads now.</strong> On the mesh it was <strong>4.8&nbsp;px of ink with a 0.68&nbsp;px glyph cell</strong> &mdash; two digits physically merged, and impossible at any camera this game has (a 2&times; dolly still gives 9&nbsp;px). It is now a screen-space badge at <strong>21&nbsp;px</strong>, two distinct digits with a 6&nbsp;px gap, carried on only the man you steer and the man on the ball &mdash; <strong>0.19&nbsp;% of the frame</strong>.</figcaption>
+      </figure>
+      <figure>
+        <img src="shots/mf-p5-crowd-1080.png" alt="The far terrace crowd in detail">
+        <figcaption><strong>The crowd is people now.</strong> The rebuild also fixed three draw bugs that were visible in every frame: a doubled tier scale (tiers 2.2&nbsp;m tall scaled 2.2&times; again, so they interpenetrated), a 2.2&times; vertical UV smear, and a crowd atlas sampled twice per tier. The risers now take perspective UVs, so the 260&nbsp;m stand stops shearing into 45&deg; chevrons.</figcaption>
+      </figure>
+    </div>
+
+    <h2>PLAYER DETAIL</h2><span class="n">08</span></div>
     <div class="pitch-block">
       <p>The detail pass, captured at 1080p &mdash; the virtual 640&times;480 render pinned into a 1920&times;1080 backbuffer and letterboxed at 2.25&times; nearest into the rect (240,0,1440,1080). Not a 320&times;240 upscale. Same deterministic sim throughout, seed 402.</p>
     </div>
@@ -736,8 +752,8 @@
         <figcaption><strong>Gore, newest</strong> &mdash; A severed head lands and then TURNS to keep watching the ball — the gore sits on a body-zone anchor contract, not on the current mesh, so a better model inherits it.</figcaption>
       </figure>
       <figure>
-        <img src="shots/mf-gore-leg-sever-960x720.gif" alt="A leg comes off at the knee on a Major impact to that zone only. Debris arcs, hinges and settles on the grass; a stump plug with a pale bone core rides the body.">
-        <figcaption><strong>Gore, newest</strong> &mdash; A leg comes off at the knee on a Major impact to that zone only. Debris arcs, hinges and settles on the grass; a stump plug with a pale bone core rides the body.</figcaption>
+        <img src="shots/mf-gore-leg-sever-960x720.gif" alt="A leg comes off at the knee on a Major impact to that zone only (captured at a 3&times; dolly &mdash; the stage-1 readability change floors the stump at the shipping camera too: bone 7&nbsp;px &rarr; 19&nbsp;px). Debris arcs, hinges and settles on the grass; a stump plug with a pale bone core rides the body.">
+        <figcaption><strong>Gore, newest</strong> &mdash; A leg comes off at the knee on a Major impact to that zone only (captured at a 3&times; dolly &mdash; the stage-1 readability change floors the stump at the shipping camera too: bone 7&nbsp;px &rarr; 19&nbsp;px). Debris arcs, hinges and settles on the grass; a stump plug with a pale bone core rides the body.</figcaption>
       </figure>
       <figure>
         <img src="shots/mf-gore-leg-walks-off-960x720.gif" alt="The severed leg hops itself toward the nearest touchline. Deterministic: same seed, same script, bit-identical debris.">
