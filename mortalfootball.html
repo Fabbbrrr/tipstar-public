@@ -709,6 +709,22 @@
         <img src="shots/mf-turf-leaf-scale-960x720.png" alt="Medium camera, the shipping view, after the turf-grain fix - fine grass, five-metre mown stripes, clean touchline">
         <figcaption>The shipping vantage after the fix &mdash; medium camera, 960&times;720, real build. Gates that keep it there: the bake census now requires the turf tile to repeat its source across the tile (cell correlation <strong>0.985</strong>; a whole-pitch one-shot bake measures 0.605 and fails), and two CPU tests pin the pitch to <strong>105&nbsp;/&nbsp;40 = 2.625</strong> texture repeats and the surround to the pitch's metres-per-repeat.</figcaption>
       </figure>
+        <figure>
+        <img src="shots/mf-perimeter-before-after.png" alt="The pitch perimeter before and after - same seed, same camera, same frame 300: above, bare run-off and a hazy far end; below, a hoarding ring, a stand on every sight line, and a white box-net goal">
+        <figcaption><strong>The ground has an edge, 2026-10-22</strong> &mdash; same seed, same camera, same frame (300), 960&times;720. Above: the match drew <em>no hoardings at all</em> (the mesh existed; only the dev pitch scene bound it), the run-off was one quad <strong>0.5&nbsp;m below</strong> the pitch so the line was a cliff, the crowd-stand slab behind the goal was rotated 90&deg; so <strong>21&nbsp;m of it lay inside the pitch</strong>, and a per-pixel haze hid the empty far end. Below: a continuous hoarding ring on all four sides (0.95&nbsp;m tall, 3.1&nbsp;m behind each goal line &mdash; a half-metre per second faster than a fit adult, on the frame, the boards read as the band that stops the pitch being a rectangle floating on grass), a terrace run behind each goal end and behind the near line, the run-off level with the pitch, and <strong>the air switched off by default</strong> &mdash; the haze existed to hide a missing place, and the place is now real.</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-perimeter-medium-960x720.png" alt="The shipping medium camera after the perimeter leg - hoardings under a full crowd, mown stripes, white goal frame">
+        <figcaption>The shipping vantage &mdash; medium, real build. The hoardings now sit between the turf and the stand at ambient 0.42 (at 0.55 they read as a white stripe competing with the touchline, measured on this frame). The goal frame is drawn <strong>white</strong> instead of 48-grey: at 48 it read as a steel cage, and the net behind it is a <strong>box</strong> now &mdash; a 1.2&nbsp;m roof then a back that slopes to the ground 2.4&nbsp;m behind the line, with a roof-edge tube, two sloping stanchions and ground anchor plates (the 4&nbsp;ft/10&nbsp;ft net spec, its bottom pulled in so the net cannot grow through the boards).</figcaption>
+      </figure>
+        <figure>
+        <img src="shots/mf-perimeter-wide-960x720.png" alt="The wide preset after the leg - steepened camera, hoarding band at the near touchline, a terrace filling the top of the frame instead of fog">
+        <figcaption>The wide preset, steepened from 12&nbsp;m up / 46&nbsp;m back to <strong>26&nbsp;/&nbsp;30</strong> (down-angle 14.6&deg; &rarr; 17.5&deg;). At the old angle the ground beyond the near touchline grazed the horizon and the top third of the frame was sky &mdash; which the fog was hiding. A ten-course terrace now stands 70&nbsp;m behind the near touchline: far enough that the ball-follow rig (reach z &minus;52.6) never gets inside it, close enough that it fills 85&nbsp;% of this frame's upper half. Its crowd bake carries a box-filtered mip chain, because at 100&nbsp;m the point sampler rendered the whole band as flat coloured scan lines (measured on frame 1800). <em>Honest note: about 130&nbsp;px of night sky still sit above it &mdash; filling that needs a ~37&nbsp;m stand.</em></figcaption>
+      </figure>
+      <figure>
+        <img src="shots/mf-perimeter-tight-960x720.png" alt="The tight camera after the perimeter leg">
+        <figcaption>The tight preset, same frame &mdash; the same perimeter from the closest vantage, with the hoarding run and the crowd behind it at the top of the shot.</figcaption>
+      </figure>
       </div>
       <h3 class="gallery-section">PLAYERS, KITS & FACES</h3>
       <div class="gallery-grid">
