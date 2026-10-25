@@ -214,6 +214,7 @@ h2{
 .trailer-cue{
   position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;
   display:inline-flex;align-items:center;gap:11px;
+  width:max-content;max-width:calc(100% - 22px);
   background:rgba(27,26,23,.84);color:var(--chalk);
   border:1px solid rgba(242,237,227,.5);
   font-family:var(--pixel);font-size:.74rem;letter-spacing:.05em;text-transform:uppercase;
@@ -557,7 +558,7 @@ h2{
               aria-label="Trailer: the two characters working through rooms in Brackwater"></video>
             <button class="trailer-cue" type="button" data-hero-toggle aria-label="Play the trailer">
               <svg viewBox="0 0 16 16" aria-hidden="true" data-icon-play><path d="M4 2.5v11l9-5.5z"/></svg>
-              <span data-toggle-label>Play the trailer · 50 s</span>
+              <span data-toggle-label>Play the trailer</span>
             </button>
             <button class="film-btn hero-pause" type="button" data-hero-pause aria-label="Pause the trailer">
               <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z"/></svg>
@@ -989,7 +990,7 @@ h2{
     function paint(){
       var playing = !video.paused && !video.ended;
       wrap.setAttribute("data-playing", playing ? "true" : "false");
-      if (label) label.textContent = playing ? "Pause" : "Play the trailer · 50 s";
+      if (label) label.textContent = playing ? "Pause" : "Play the trailer";
       btn.setAttribute("aria-label", playing ? "Pause the trailer" : "Play the trailer");
       if (icon) icon.innerHTML = playing
         ? '<path d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z"/>'
