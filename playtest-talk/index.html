@@ -376,7 +376,7 @@ pre .c{color:#9C968A} pre .s{color:var(--sage-light)} pre .k{color:var(--mustard
       <h2 class="a">So testing it means playing it. Again.</h2>
       <div class="stats a" style="--i:1">
         <div class="stat"><div class="n">15</div><div class="l">rooms built. Fifty planned.</div></div>
-        <div class="stat"><div class="n">60&ndash;75<span style="font-size:.6em"> min</span></div><div class="l">a playtest, with two people and a facilitator</div></div>
+        <div class="stat"><div class="n">60&ndash;75<span style="font-size:.72em"> min</span></div><div class="l">a playtest, with two people and a facilitator</div></div>
         <div class="stat"><div class="n">4</div><div class="l">pairs minimum to pass one act gate</div></div>
       </div>
       <p class="a" style="--i:2">A room is a chain of prompts, and any link can break: a prompt that
@@ -609,18 +609,127 @@ pre .c{color:#9C968A} pre .s{color:var(--sage-light)} pre .k{color:var(--mustard
       <h2 class="a">One turn, five steps, a quarter of a second.</h2>
       <ol class="steps a" style="--i:1">
         <li><b>The game hands over what it knows.</b></li>
-        <li><b>Our code builds the menu.</b> Every move allowed now, at most five. Distances become
-          words, never metres.</li>
+        <li><b>Our code builds the menu.</b> Every move allowed now, three or four of them. Distances
+          become words, never metres.</li>
         <li><b>One call.</b> Which option, is there a move worth taking, whose move the room wants.</li>
         <li><b>Confidence decides.</b> Under 0.35 it takes the information option instead.</li>
         <li><b>The executor walks and presses,</b> through the same input a player uses.</li>
       </ol>
     </div>
   </div>
-  <p class="sowhat a" style="--i:2">The model cannot invent a move. The menu is the game's own list.</p>
+  <p class="sowhat a" style="--i:2">The model cannot invent a move. The menu lists props the game itself resolves.</p>
 </section>
 
 <!-- 9 -->
+<section class="slide" data-section="the wiring">
+  <div class="split">
+    <div class="body">
+      <h2 class="a">The call is one HTTPS request, sent from our Python.</h2>
+      <p class="small a" style="--i:1">No SDK, no chat wrapper, no tool loop. Our script POSTs a block
+        of facts and three typed questions once a turn. The reply is JSON with a number for every
+        option. This is a real turn, trimmed.</p>
+      <div class="a" style="--i:2">
+        <pre><span class="c">POST https://api.typesafe.ai/v1/systemone</span>
+<span class="c">Authorization: Bearer &middot;&middot;&middot;&middot;&middot;&middot;&middot;&middot;</span>
+<span class="c">Content-Type: application/json</span>
+
+{ "model": <span class="s">"jev-1.14.0"</span>,
+  "state": { "room": <span class="s">"arrival"</span>,
+    "you":     { "body": <span class="s">"pip"</span>, "prompt": <span class="s">"SQUEEZE BACK"</span> },
+    "partner": { "body": <span class="s">"bo"</span>, "prompt": <span class="s">"WALK TO CRATE"</span> },
+    "options": { "a1": { "do": <span class="s">"use the lever"</span>, "reach": <span class="s">"close"</span> },
+                 "a2": { "do": <span class="s">"use the crate"</span>, "reach": <span class="s">"far"</span> },
+                 "a3": { "do": <span class="s">"look at crate 3"</span> },
+                 "a4": { "do": <span class="s">"call Bo"</span> } },
+    "already_tried": [<span class="s">...</span>], "room_has_said": [<span class="s">...</span>] },
+  "questions": {
+    "pick": { "type": <span class="s">"choice"</span>, "instructions": <span class="s">"..."</span>,
+              "criteria": { <span class="s">...</span> } },
+    "act":  { "type": <span class="s">"noul"</span>, "instructions": <span class="s">"..."</span> },
+    "need": { "type": <span class="s">"choice"</span>, "criteria": { <span class="s">...</span> } } } }</pre>
+      </div>
+    </div>
+    <div class="body">
+      <div class="a" style="--i:1">
+        <pre>{ "model": <span class="s">"jev-1.14.0"</span>,
+  "answers": {
+    "pick": { "choice": <span class="s">"a2"</span>, "confidence": <span class="k">0.40</span>,
+              "probabilities": { <span class="s">"a1"</span>: <span class="k">0.29</span>, <span class="s">"a2"</span>: <span class="k">0.55</span>,
+                                 <span class="s">"a3"</span>: <span class="k">0.06</span>, <span class="s">"a4"</span>: <span class="k">0.10</span> } },
+    "act":  { "noul": <span class="k">0.98</span> },
+    "need": { "choice": <span class="s">"partner"</span> } },
+  "usage": { "input_tokens": <span class="k">1389</span>, "output_tokens": <span class="k">12</span> },
+  "_wall_s": <span class="k">0.26</span>, "_cost_usd": <span class="k">0.000058</span> }</pre>
+      </div>
+      <div class="facts a" style="--i:2">
+        <div class="f"><b>endpoint</b><span>One vendor route, <span class="mono">/v1/systemone</span>. A
+          bearer key from the environment, never in the repo.</span></div>
+        <div class="f"><b>one call</b><span>Three questions answered together. Adding a question barely
+          moves the 0.26 s.</span></div>
+        <div class="f"><b>last two fields</b><span>Stamped on by our client: latency and cost are
+          measured, not reported by the vendor.</span></div>
+      </div>
+    </div>
+  </div>
+  <p class="sowhat a" style="--i:3">Jev is a function call that returns probabilities. It is not a
+    conversation.</p>
+</section>
+
+<!-- 10 -->
+<section class="slide" data-section="the wiring">
+  <div class="split">
+    <div class="body" style="justify-content:center">
+      <svg class="diagram" viewBox="0 0 540 330" role="img" aria-label="One Python process sits between the game, started as a headless child speaking JSON lines, and the Jev API, called once per turn over HTTPS. No other model is in the loop.">
+        <circle class="dot jev" r="5">
+          <animateMotion dur="6.5s" repeatCount="indefinite" path="M96 130 V240 H444 V130"/>
+        </circle>
+
+        <rect class="box" x="8" y="26" width="176" height="76"/>
+        <text class="t1" x="22" y="52">THE GAME</text>
+        <text class="t2" x="22" y="74">OddPair.exe --agent</text>
+        <text class="t2" x="22" y="90">one JSON line a turn</text>
+
+        <rect class="box good" x="182" y="196" width="176" height="110"/>
+        <text class="t1" x="196" y="224">THE ORCHESTRATOR</text>
+        <text class="t2" x="196" y="246">jev_play.py,</text>
+        <text class="t2" x="196" y="260">one Python process</text>
+        <text class="t2" x="196" y="276">builds the menu,</text>
+        <text class="t2" x="196" y="290">presses, writes down</text>
+
+        <rect class="box jev" x="356" y="26" width="176" height="76"/>
+        <text class="t1" x="370" y="52">THE API</text>
+        <text class="t2" x="370" y="74">api.typesafe.ai</text>
+        <text class="t2" x="370" y="90">one POST a turn</text>
+
+        <path class="lead" d="M96 102 V240 H182"/>
+        <text class="t2" x="14" y="180">obs / press</text>
+        <path class="lead jev" d="M358 240 H444 V102"/>
+        <text class="t2" x="452" y="176">one HTTPS</text>
+        <text class="t2" x="452" y="190">POST a turn</text>
+      </svg>
+    </div>
+    <div class="body">
+      <h2 class="a">Who runs the test: one Python script, and the game as referee.</h2>
+      <table class="cmp a" style="--i:1">
+        <tr><th>the job</th><th>who does it</th></tr>
+        <tr><td>holds the room and its rules</td><td>the game: a press changes state or it does not</td></tr>
+        <tr><td>lists what a body may do</td><td>our Python, from the room's props and the verb table</td></tr>
+        <tr><td>prices a walk</td><td>our Python, off the game's own walkability grid</td></tr>
+        <tr><td>ranks the options</td><td>Jev: one call, three typed answers</td></tr>
+        <tr><td>decides, guesses, remembers</td><td>nobody: below 0.35 the engine takes the look</td></tr>
+        <tr><td>writes the report</td><td>our Python: one row a turn, friction from state diffs</td></tr>
+      </table>
+      <p class="small muted a" style="--i:2">No orchestrating model, no agent framework. The chat-model
+        path is a separate script (<span class="mono">llm_play.py</span>); the Jev script calls only Jev.
+        A call that fails after one retry stops the run with a named error instead of inventing a
+        fallback.</p>
+    </div>
+  </div>
+  <p class="sowhat a" style="--i:3">Jev is the judgement. The engine is Python, and the game is the
+    judge.</p>
+</section>
+
+<!-- 11 -->
 <section class="slide" data-section="the result">
   <div class="split">
     <div class="body">
@@ -655,7 +764,7 @@ pre .c{color:#9C968A} pre .s{color:var(--sage-light)} pre .k{color:var(--mustard
   <p class="sowhat a" style="--i:3">A hundred and fifty times faster, and it is the one that works.</p>
 </section>
 
-<!-- 10 -->
+<!-- 12 -->
 <section class="slide" data-section="the result">
   <div class="split">
     <div class="body">
@@ -689,7 +798,7 @@ pre .c{color:#9C968A} pre .s{color:var(--sage-light)} pre .k{color:var(--mustard
   <p class="sowhat a" style="--i:4">It found the designer's route from the prompts alone.</p>
 </section>
 
-<!-- 11 -->
+<!-- 13 -->
 <section class="slide dark" data-section="the result">
   <div class="body">
     <h2 class="a">What used to cost an evening now costs less than a cent.</h2>
@@ -715,7 +824,7 @@ pre .c{color:#9C968A} pre .s{color:var(--sage-light)} pre .k{color:var(--mustard
   <p class="sowhat a" style="--i:5">A fix can be measured before lunch.</p>
 </section>
 
-<!-- 12 -->
+<!-- 14 -->
 <section class="slide dark title" data-section="questions">
   <div class="split">
     <div class="copy">
